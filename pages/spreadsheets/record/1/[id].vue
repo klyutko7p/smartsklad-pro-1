@@ -46,7 +46,7 @@ const token = Cookies.get("token");
       <NuxtLayout name="admin">
         <div class="mt-5" v-if="!isLoading">
           <RecordBody :link="link" :user="user" :row="row"
-            :value="`https://smartsklad-pro-1.netlify.app/spreadsheets/record/1/${row.id}`"
+            :value="`https://smartsklad-pro-2.netlify.app/spreadsheets/record/1/${row.id}`"
             @update-delivery-row="updateDeliveryRow" />
         </div>
         <div v-else>
@@ -58,7 +58,7 @@ const token = Cookies.get("token");
       <NuxtLayout name="user">
         <div class="mt-5" v-if="!isLoading">
           <RecordBody :link="link" :user="user" :row="row"
-            :value="`https://smartsklad-pro-1.netlify.app/spreadsheets/record/1/${row.id}`"
+            :value="`https://smartsklad-pro-2.netlify.app/spreadsheets/record/1/${row.id}`"
             @update-delivery-row="updateDeliveryRow" />
         </div>
         <div v-else>

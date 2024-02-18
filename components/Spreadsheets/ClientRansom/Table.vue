@@ -113,7 +113,7 @@ function convertToURL(inputString: string) {
     const recordID = parts[parts.length - 2];
     const entryID = parts[parts.length - 1];
 
-    const url = `https://smartsklad-pro-1.netlify.app/spreadsheets/record/${recordID}/${entryID}`;
+    const url = `https://smartsklad-pro-2.netlify.app/spreadsheets/record/${recordID}/${entryID}`;
 
     return url;
   } else if (inputString.includes('.')) {
@@ -122,7 +122,7 @@ function convertToURL(inputString: string) {
     const recordID = parts[parts.length - 2];
     const entryID = parts[parts.length - 1];
 
-    const url = `https://smartsklad-pro-1.netlify.app/spreadsheets/record/${recordID}/${entryID}`;
+    const url = `https://smartsklad-pro-2.netlify.app/spreadsheets/record/${recordID}/${entryID}`;
 
     return url;
   }
