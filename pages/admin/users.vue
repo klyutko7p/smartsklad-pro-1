@@ -229,15 +229,6 @@ definePageMeta({
             </div>
 
             <div class="grid grid-cols-2 mb-5">
-              <label for="cell">Дополнительно <br> (Доставка)</label>
-              <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="userData.additionally3">
-                <option value="NONE">NONE</option>
-                <option value="READ">READ</option>
-                <option value="WRITE">WRITE</option>
-              </select>
-            </div>
-
-            <div class="grid grid-cols-2 mb-5">
               <label for="cell">Доставлено на СЦ <br> (Наш выкуп)</label>
               <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="userData.deliveredSC1">
                 <option value="NONE">NONE</option>
@@ -310,42 +301,6 @@ definePageMeta({
             </div>
 
             <div class="grid grid-cols-2 mb-5">
-              <label for="cell">Отправка в ПВЗ <br> (Доставка)</label>
-              <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="userData.dispatchPVZ3">
-                <option value="NONE">NONE</option>
-                <option value="READ">READ</option>
-                <option value="WRITE">WRITE</option>
-              </select>
-            </div>
-
-            <div class="grid grid-cols-2 mb-5">
-              <label for="cell">Отсортировано <br> (Доставка)</label>
-              <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="userData.sorted">
-                <option value="NONE">NONE</option>
-                <option value="READ">READ</option>
-                <option value="WRITE">WRITE</option>
-              </select>
-            </div>
-
-            <div class="grid grid-cols-2 mb-5">
-              <label for="cell">Оплачено <br> (Доставка)</label>
-              <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="userData.paid">
-                <option value="NONE">NONE</option>
-                <option value="READ">READ</option>
-                <option value="WRITE">WRITE</option>
-              </select>
-            </div>
-
-            <div class="grid grid-cols-2 mb-5">
-              <label for="cell">Имя <br> (Доставка)</label>
-              <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="userData.name3">
-                <option value="NONE">NONE</option>
-                <option value="READ">READ</option>
-                <option value="WRITE">WRITE</option>
-              </select>
-            </div>
-
-            <div class="grid grid-cols-2 mb-5">
               <label for="cell">Телефон <br> (Наш выкуп)</label>
               <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="userData.fromName1">
                 <option value="NONE">NONE</option>
@@ -357,15 +312,6 @@ definePageMeta({
             <div class="grid grid-cols-2 mb-5">
               <label for="cell">Телефон <br> (Выкуп клиента)</label>
               <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="userData.fromName2">
-                <option value="NONE">NONE</option>
-                <option value="READ">READ</option>
-                <option value="WRITE">WRITE</option>
-              </select>
-            </div>
-
-            <div class="grid grid-cols-2 mb-5">
-              <label for="cell">Телефон <br> (Доставка)</label>
-              <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="userData.fromName3">
                 <option value="NONE">NONE</option>
                 <option value="READ">READ</option>
                 <option value="WRITE">WRITE</option>
@@ -418,15 +364,6 @@ definePageMeta({
             </div>
 
             <div class="grid grid-cols-2 mb-5">
-              <label for="cell">Заказано на СЦ <br> (Доставка)</label>
-              <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="userData.orderPVZ3">
-                <option value="NONE">NONE</option>
-                <option value="READ">READ</option>
-                <option value="WRITE">WRITE</option>
-              </select>
-            </div>
-
-            <div class="grid grid-cols-2 mb-5">
               <label for="cell">Процент с клиента <br> (Наш выкуп)</label>
               <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="userData.percentClient1">
                 <option value="NONE">NONE</option>
@@ -438,15 +375,6 @@ definePageMeta({
             <div class="grid grid-cols-2 mb-5">
               <label for="cell">Процент с клиента <br> (Выкуп клиента)</label>
               <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="userData.percentClient2">
-                <option value="NONE">NONE</option>
-                <option value="READ">READ</option>
-                <option value="WRITE">WRITE</option>
-              </select>
-            </div>
-
-            <div class="grid grid-cols-2 mb-5">
-              <label for="cell">Процент с клиента <br> (Доставка)</label>
-              <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="userData.percentClient3">
                 <option value="NONE">NONE</option>
                 <option value="READ">READ</option>
                 <option value="WRITE">WRITE</option>
@@ -474,15 +402,6 @@ definePageMeta({
             <div class="grid grid-cols-2 mb-5">
               <label for="cell">Стоимость выкупа товара <br> (Выкуп клиента) </label>
               <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="userData.priceProgram">
-                <option value="NONE">NONE</option>
-                <option value="READ">READ</option>
-                <option value="WRITE">WRITE</option>
-              </select>
-            </div>
-
-            <div class="grid grid-cols-2 mb-5">
-              <label for="cell">Стоимость выкупа товара <br> (Доставка) </label>
-              <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="userData.purchaseOfGoods">
                 <option value="NONE">NONE</option>
                 <option value="READ">READ</option>
                 <option value="WRITE">WRITE</option>
@@ -573,16 +492,6 @@ definePageMeta({
             </div>
 
             <div class="grid grid-cols-2 mb-5">
-              <label for="cell">Данные <br /> (Доставка)</label>
-              <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="userData.dataDelivery">
-                <option value="NONE">NONE
-                </option>
-                <option value="READ">READ</option>
-                <option value="WRITE">WRITE</option>
-              </select>
-            </div>
-
-            <div class="grid grid-cols-2 mb-5">
               <label for="cell">Сумма с клиента <br> (Наш выкуп)</label>
               <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="userData.amountFromClient1">
                 <option value="NONE">NONE</option>
@@ -594,15 +503,6 @@ definePageMeta({
             <div class="grid grid-cols-2 mb-5">
               <label for="cell">Сумма с клиента <br> (Выкуп клиента)</label>
               <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="userData.amountFromClient2">
-                <option value="NONE">NONE</option>
-                <option value="READ">READ</option>
-                <option value="WRITE">WRITE</option>
-              </select>
-            </div>
-
-            <div class="grid grid-cols-2 mb-5">
-              <label for="cell">Сумма с клиента <br> (Доставка)</label>
-              <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="userData.amountFromClient3">
                 <option value="NONE">NONE</option>
                 <option value="READ">READ</option>
                 <option value="WRITE">WRITE</option>
@@ -627,15 +527,6 @@ definePageMeta({
               </select>
             </div>
 
-            <div class="grid grid-cols-2 mb-5">
-              <label for="cell">Ссылка для клиента <br> (Доставка)<br></label>
-              <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="userData.clientLink3">
-                <option value="NONE">NONE</option>
-                <option value="READ">READ</option>
-                <option value="WRITE">WRITE</option>
-              </select>
-            </div>
-
             <div v class="grid grid-cols-2 mb-5">
               <label for="cell">Прибыль (доход) <br> (Наш выкуп)</label>
               <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="userData.profit1">
@@ -654,14 +545,6 @@ definePageMeta({
               </select>
             </div>
 
-            <div class="grid grid-cols-2 mb-5">
-              <label for="cell">Прибыль (доход) <br> (Доставка)</label>
-              <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="userData.profit3">
-                <option value="NONE">NONE</option>
-                <option value="READ">READ</option>
-                <option value="WRITE">WRITE</option>
-              </select>
-            </div>
           </div>
 
           <div class="flex items-center justify-center gap-3 mt-10">

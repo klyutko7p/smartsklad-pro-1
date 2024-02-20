@@ -54,7 +54,7 @@ function getCountOfItemsByPVZClientRansom(PVZ: string) {
 }
 
 function getCountOfItemsByPVZClientRansomIssued(PVZ: string) {
-  return rowsClientRansom.value?.filter((row) => row.dispatchPVZ === PVZ && row.deliveredSC !== null && row.issued === null && row.deliveredPVZ !== null).length;
+  return rowsClientRansom.value?.filter((row) => row.dispatchPVZ === PVZ && row.deliveredSC !== null && row.issued === null).length;
 }
 
 definePageMeta({

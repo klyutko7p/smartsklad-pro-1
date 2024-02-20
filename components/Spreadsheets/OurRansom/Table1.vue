@@ -95,8 +95,8 @@ const handleCheckboxChange = (row: IOurRansom): void => {
     }
     getAllSum.value = allSum.value.filter((obj) => obj.issued === null).reduce((sum, obj) => sum + obj.amount, 0);
     showButton.value = allSum.value.every(obj => obj.issued === null);
-    showButtonPVZ.value = allSum.value.every(obj => obj.deliveredPVZ === null && obj.deliveredSC !== null);
-    showButtonSC.value = allSum.value.every(obj => obj.orderPVZ === null);
+    showButtonPVZ.value = allSum.value.every(obj => obj.deliveredPVZ === null);
+    showButtonSC.value = allSum.value.every(obj => obj.deliveredSC === null);
 };
 
 const showDeletedRows = ref(false);
@@ -235,6 +235,9 @@ let showOthersVariants = ref(false)
 
     <div class="fixed z-40 flex flex-col gap-3 left-1/2 translate-x-[-50%] translate-y-[-50%]"
         v-if="user.dataOurRansom === 'WRITE' && checkedRows.length > 0 && user.role === 'PVZ'">
+        <UIActionButton v-if="user.deliveredPVZ1 === 'WRITE' && showButtonPVZ" @click="updateDeliveryRows('PVZ')">Доставить
+            на пвз
+        </UIActionButton>
         <UIActionButton v-if="user.issued1 === 'WRITE' && showButton" @click="showOthersVariants = !showOthersVariants">
             Выдать
             клиенту

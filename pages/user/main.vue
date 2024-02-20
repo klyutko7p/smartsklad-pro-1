@@ -41,7 +41,7 @@ definePageMeta({
         <h1 class="text-xl mt-10 mb-10">Приветствуем, {{ user.username }}!</h1>
         <div>
           <h1 class="font-bold text-6xl max-[400px]:text-4xl max-md:text-center text-secondary-color mb-5">SMARTSKLAD</h1>
-          <div role="button" @click="router.push('/spreadsheets/our-ransom/info')" tabindex="0"
+          <div role="button" @click="user.role !== 'SORTIROVKA' ? router.push('/spreadsheets/our-ransom/info') : router.push('/spreadsheets/our-ransom')" tabindex="0"
             class="flex items-center w-full p-3 rounded-lg text-start leading-tight transition-all hover:bg-orange-50 hover:bg-opacity-80 focus:bg-orange-50 focus:bg-opacity-80 active:bg-orange-50 active:bg-opacity-80 hover:text-orange-900 focus:text-orange-900 active:text-orange-900 outline-none"
             v-if="user.dataOurRansom === 'READ' || user.dataOurRansom === 'WRITE'">
             <div class="grid place-items-center mr-4">
@@ -54,7 +54,7 @@ definePageMeta({
             </div>
             <h1>Наш Выкуп</h1>
           </div>
-          <div role="button" tabindex="0" @click="router.push('/spreadsheets/client-ransom/info')"
+          <div role="button" tabindex="0" @click="user.role !== 'SORTIROVKA' ? router.push('/spreadsheets/client-ransom/info') : router.push('/spreadsheets/client-ransom')"
             class="flex items-center w-full p-3 rounded-lg text-start leading-tight transition-all hover:bg-orange-50 hover:bg-opacity-80 focus:bg-orange-50 focus:bg-opacity-80 active:bg-blue-50 active:bg-opacity-80 hover:text-orange-900 focus:text-orange-900 active:text-orange-900 outline-none"
             v-if="user.dataClientRansom === 'READ' || user.dataClientRansom === 'WRITE'">
             <div class="grid place-items-center mr-4">

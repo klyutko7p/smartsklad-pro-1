@@ -52,7 +52,7 @@ function getCountOfItemsByPVZOurRansom(PVZ: string) {
 }
 
 function getCountOfItemsByPVZOurRansomIssued(PVZ: string) {
-  return rowsOurRansom.value?.filter((row) => row.dispatchPVZ === PVZ && row.deliveredSC !== null && row.issued === null && row.deliveredPVZ !== null).length;
+  return rowsOurRansom.value?.filter((row) => row.dispatchPVZ === PVZ && row.deliveredSC !== null && row.issued === null).length;
 }
 
 definePageMeta({

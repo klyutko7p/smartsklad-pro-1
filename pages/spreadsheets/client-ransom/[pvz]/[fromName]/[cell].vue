@@ -72,18 +72,16 @@ async function updateDeliveryRows(obj: any) {
   let answer = confirm(
     `Вы точно хотите изменить статус доставки? Количество записей: ${obj.idArray.length}`
   );
-  if (answer)
-    await storeRansom.updateDeliveryRowsStatus(obj.idArray, obj.flag, "ClientRansom", user.value.username);
-  filteredRows.value = await storeRansom.getRansomRowsByFromName(
-    fromNameString,
-    cellString,
-    "ClientRansom"
-  );
-  rows.value = await storeRansom.getRansomRowsByFromName(
-    fromNameString,
-    cellString,
-    "ClientRansom"
-  );
+  if (answer) await storeRansom.updateDeliveryRowsStatus(obj.idArray, obj.flag, "ClientRansom", user.value.username);
+  originallyRows.value = await storeRansom.getRansomRows("OurRansom");
+
+  if (user.value.role !== 'PVZ') {
+    rows.value = originallyRows.value?.filter((row) => row.fromName === fromNameString && row.cell === cellString)
+    filteredRows.value = rows.value
+  } else {
+    rows.value = originallyRows.value?.filter((row) => row.fromName === fromNameString && row.cell === cellString && row.deliveredSC !== null && row.issued === null)
+    filteredRows.value = rows.value
+  }
 }
 
 async function deleteRow(id: number) {
@@ -251,9 +249,15 @@ onMounted(async () => {
   user.value = await storeUsers.getUser();
   //   rows.value = await storeRansom.getRansomRowsByFromName(fromNameString, cellString, "ClientRansom");
   originallyRows.value = await storeRansom.getRansomRows("ClientRansom");
-  rows.value = originallyRows.value?.filter(
-    (row) => row.fromName === fromNameString && row.cell === cellString
-  );
+
+  if (user.value.role !== 'PVZ') {
+    rows.value = originallyRows.value?.filter((row) => row.fromName === fromNameString && row.cell === cellString)
+    filteredRows.value = rows.value
+  } else {
+    rows.value = originallyRows.value?.filter((row) => row.fromName === fromNameString && row.cell === cellString && row.deliveredSC !== null && row.issued === null)
+    filteredRows.value = rows.value
+  }
+  
   pvz.value = await storePVZ.getPVZ();
   sortingCenters.value = await storeSortingCenters.getSortingCenters();
   marketplaces.value = await storeMarketplaces.getMarketplaces();
@@ -318,35 +322,16 @@ function getFromNameFromCell() {
       <NuxtLayout name="admin">
         <div v-if="!isLoading" class="mt-3">
           <div>
-            <SpreadsheetsClientRansomFilters
-              v-if="rows"
-              @filtered-rows="handleFilteredRows"
-              :rows="rows"
-            />
-            <div
-              class="mt-5 flex items-center gap-3"
-              v-if="user.dataClientRansom === 'WRITE'"
-            >
-              <UIMainButton
-                v-if="user.role === 'ADMIN' || user.role === 'ADMINISTRATOR'"
-                @click="openModal"
-              >
-                Создать новую запись</UIMainButton
-              >
+            <SpreadsheetsClientRansomFilters v-if="rows" @filtered-rows="handleFilteredRows" :rows="rows" />
+            <div class="mt-5 flex items-center gap-3" v-if="user.dataClientRansom === 'WRITE'">
+              <UIMainButton v-if="user.role === 'ADMIN' || user.role === 'ADMINISTRATOR'" @click="openModal">
+                Создать новую запись</UIMainButton>
             </div>
           </div>
 
-          <SpreadsheetsClientRansomTable1
-            @update-delivery-row="updateDeliveryRow"
-            :rows="filteredRows"
-            :user="user"
-            @delete-row="deleteRow"
-            @open-modal="openModal"
-            @delete-selected-rows="deleteSelectedRows"
-            @update-delivery-rows="updateDeliveryRows"
-            @create-copy-row="createCopyRow"
-            :pvz-link="pvzLink"
-          />
+          <SpreadsheetsClientRansomTable1 @update-delivery-row="updateDeliveryRow" :rows="filteredRows" :user="user"
+            @delete-row="deleteRow" @open-modal="openModal" @delete-selected-rows="deleteSelectedRows"
+            @update-delivery-rows="updateDeliveryRows" @create-copy-row="createCopyRow" :pvz-link="pvzLink" />
 
           <UIModal v-show="isOpen" @close-modal="closeModal">
             <template v-slot:header>
@@ -431,7 +416,7 @@ function getFromNameFromCell() {
                   v-model="rowData.percentClient" placeholder="По умолчанию: 10" type="number" />
               </div>
 
-                            <div class="grid grid-cols-2 mb-5" v-if="user.orderPVZ2 === 'READ' || user.orderPVZ2 === 'WRITE'">
+              <div class="grid grid-cols-2 mb-5" v-if="user.orderPVZ2 === 'READ' || user.orderPVZ2 === 'WRITE'">
                 <label for="orderPVZ1" class="max-sm:text-sm">Заказано на СЦ</label>
                 <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base disabled:text-gray-400"
                   v-model="rowData.orderPVZ" :disabled="user.orderPVZ1 === 'READ'">
@@ -501,36 +486,17 @@ function getFromNameFromCell() {
       <NuxtLayout name="user">
         <div v-if="!isLoading" class="mt-3">
           <div>
-            <SpreadsheetsClientRansomFilters
-              v-if="rows && user.role !== 'PVZ'"
-              @filtered-rows="handleFilteredRows"
-              :rows="rows"
-              :user="user"
-            />
-            <div
-              class="mt-5 flex items-center gap-3"
-              v-if="user.dataOurRansom === 'WRITE'"
-            >
-              <UIMainButton
-                v-if="user.role === 'ADMIN' || user.role === 'ADMINISTRATOR'"
-                @click="openModal"
-              >
-                Создать новую запись</UIMainButton
-              >
+            <SpreadsheetsClientRansomFilters v-if="rows && user.role !== 'PVZ'" @filtered-rows="handleFilteredRows"
+              :rows="rows" :user="user" />
+            <div class="mt-5 flex items-center gap-3" v-if="user.dataOurRansom === 'WRITE'">
+              <UIMainButton v-if="user.role === 'ADMIN' || user.role === 'ADMINISTRATOR'" @click="openModal">
+                Создать новую запись</UIMainButton>
             </div>
           </div>
 
-          <SpreadsheetsClientRansomTable1
-            @update-delivery-row="updateDeliveryRow"
-            :rows="filteredRows"
-            :user="user"
-            @delete-row="deleteRow"
-            @open-modal="openModal"
-            @delete-selected-rows="deleteSelectedRows"
-            @update-delivery-rows="updateDeliveryRows"
-            @create-copy-row="createCopyRow"
-            :pvz-link="pvzLink"
-          />
+          <SpreadsheetsClientRansomTable1 @update-delivery-row="updateDeliveryRow" :rows="filteredRows" :user="user"
+            @delete-row="deleteRow" @open-modal="openModal" @delete-selected-rows="deleteSelectedRows"
+            @update-delivery-rows="updateDeliveryRows" @create-copy-row="createCopyRow" :pvz-link="pvzLink" />
 
           <UIModal v-show="isOpen" @close-modal="closeModal">
             <template v-slot:header>
@@ -615,7 +581,7 @@ function getFromNameFromCell() {
                   v-model="rowData.percentClient" placeholder="По умолчанию: 10" type="number" />
               </div>
 
-                            <div class="grid grid-cols-2 mb-5" v-if="user.orderPVZ2 === 'READ' || user.orderPVZ2 === 'WRITE'">
+              <div class="grid grid-cols-2 mb-5" v-if="user.orderPVZ2 === 'READ' || user.orderPVZ2 === 'WRITE'">
                 <label for="orderPVZ1" class="max-sm:text-sm">Заказано на СЦ</label>
                 <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base disabled:text-gray-400"
                   v-model="rowData.orderPVZ" :disabled="user.orderPVZ1 === 'READ'">
