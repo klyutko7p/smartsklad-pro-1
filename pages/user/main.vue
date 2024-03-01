@@ -40,7 +40,7 @@ definePageMeta({
       <div class="py-5">
         <h1 class="text-xl mt-10 mb-10">Приветствуем, {{ user.username }}!</h1>
         <div>
-          <h1 class="font-bold text-6xl max-[400px]:text-4xl max-md:text-center text-secondary-color mb-5">DAROM.PRO</h1>
+          <h1 class="font-bold text-6xl max-[400px]:text-4xl max-md:text-center text-secondary-color mb-5">SMARTSKLAD</h1>
           <div role="button"
             @click="user.role !== 'SORTIROVKA' ? router.push('/spreadsheets/our-ransom/info') : router.push('/spreadsheets/our-ransom')"
             tabindex="0"

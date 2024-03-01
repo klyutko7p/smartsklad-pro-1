@@ -46,7 +46,7 @@ function formatPhoneNumber(phoneNumber: string) {
     class="fixed z-50 backdrop-blur-2xl w-full h-screen flex flex-col bg-clip-border rounded-xl bg-white text-gray-700 max-w-[16rem] p-4 shadow-xl shadow-blue-gray-900/5 max-xl:hidden overflow-y-auto"
     v-if="isOpen">
     <div class="p-4 flex justify-between items-center">
-      <h1 class="font-bold text-xl text-secondary-color">DAROM.PRO</h1>
+      <h1 class="font-bold text-xl text-secondary-color">SMARTSKLAD</h1>
       <Icon @click="editMenu" name="ooui:arrow-previous-ltr" size="20"
         class="hover:text-orange-300 duration-200 cursor-pointer" />
     </div>
@@ -138,7 +138,7 @@ function formatPhoneNumber(phoneNumber: string) {
     <Icon name="material-symbols:close" class="absolute duration-200 cursor-pointer hover:text-orange-400 top-2 right-4"
       size="40" @click="editMenu" />
     <nav class="flex flex-col gap-1 min-w-[240px] p-2 font-sans text-base font-normal text-gray-700">
-      <h1 class="text-center font-bold text-3xl text-secondary-color mb-5">DAROM.PRO</h1>
+      <h1 class="text-center font-bold text-3xl text-secondary-color mb-5">SMARTSKLAD</h1>
       <div role="button" @click="router.push('/spreadsheets/our-ransom/info')" tabindex="0"
         class="flex items-center w-full p-3 rounded-lg text-start leading-tight transition-all hover:bg-orange-50 hover:bg-opacity-80 focus:bg-orange-50 focus:bg-opacity-80 active:bg-orange-50 active:bg-opacity-80 hover:text-orange-900 focus:text-orange-900 active:text-orange-900 outline-none"
         v-if="user.dataOurRansom === 'READ' || user.dataOurRansom === 'WRITE'">

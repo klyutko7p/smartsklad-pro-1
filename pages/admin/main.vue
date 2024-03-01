@@ -44,7 +44,7 @@ definePageMeta({
             <!-- <UIActionButton @click="updateCellsStatus">Обновить статус ячеек</UIActionButton> -->
           </div>
           <div>
-            <h1 class="font-bold text-6xl max-[400px]:text-4xl max-md:text-center text-secondary-color mb-5">DAROM.PRO
+            <h1 class="font-bold text-6xl max-[400px]:text-4xl max-md:text-center text-secondary-color mb-5">SMARTSKLAD
             </h1>
             <div role="button" @click="router.push('/spreadsheets/our-ransom/info')" tabindex="0"
               class="flex items-center w-full p-3 rounded-lg text-start leading-tight transition-all hover:bg-orange-50 hover:bg-opacity-80 focus:bg-orange-50 focus:bg-opacity-80 active:bg-gray-50 active:bg-opacity-80 hover:text-orange-900 focus:text-orange-900 active:text-orange-900 outline-none"

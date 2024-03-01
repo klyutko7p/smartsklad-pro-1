@@ -22,7 +22,7 @@ onBeforeMount(() => {
 
 <template>
   <Head>
-    <Title>DAROM.pro</Title>
+    <Title>SMARTSKLAD</Title>
   </Head>
   <NuxtLayout name="main-page">
     <div class="bg-main-page">
@@ -30,7 +30,7 @@ onBeforeMount(() => {
         <UIMainButton @click="router.push('/auth/login')">Войти</UIMainButton>
         <div class="flex items-center justify-center flex-col">
           <h1 class="text-secondary-color font-bold text-8xl max-lg:text-6xl mt-3">
-            DAROM.pro
+            SMARTSKLAD
           </h1>
           <h1 class="text-secondary-color font-bold uppercase mt-3 max-md:text-center">
             Доставка из маркетплейсов WILDBERRIES, OZON, ЯНДЕКС МАРКЕТ И ДР.
