@@ -153,9 +153,6 @@ function isValidUrl(url: string): boolean {
   <div class="mt-10">
     <div class="flex flex-col gap-10 mb-5">
       <h1 class="text-2xl">Режим выдачи товаров ({{ pvzLink }}) </h1>
-      <input
-        class="block w-full bg-transparent mb-5 border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-gray-300 placeholder:text-gray-400 rounded-2xl focus:ring-2 focus:ring-yellow-600 sm:text-sm sm:leading-6"
-        placeholder="Отсканируйте товар (Принятие на ПВЗ)" v-model="scanStringItem" @input="scanItem" />
     </div>
     <input type="text" v-model="searchQuery"
       class="block w-full bg-transparent mb-5 border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-gray-300 placeholder:text-gray-400 rounded-2xl focus:ring-2 focus:ring-yellow-600 sm:text-sm sm:leading-6"

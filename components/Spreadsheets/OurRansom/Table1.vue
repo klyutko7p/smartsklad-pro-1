@@ -212,7 +212,6 @@ function focusInput() {
         <div>
             <input class="block w-full bg-transparent mb-5 border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-gray-300 placeholder:text-gray-400 rounded-2xl focus:ring-2 focus:ring-yellow-600 sm:text-sm sm:leading-6"
             placeholder="Отсканируйте товар (Выделение)" ref="myInput" autofocus v-model="scanStringItem" @input="scanItem" />
-
             <div class="flex items-center max-sm:flex-col max-sm:items-start gap-5 mb-5">
                 <h1 class="text-xl" v-if="user.role !== 'PVZ'">Товаров в работе: <span
                         class="text-secondary-color font-bold">{{
