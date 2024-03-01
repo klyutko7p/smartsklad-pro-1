@@ -61,7 +61,6 @@ async function updateDeliveryRow(obj: any) {
 }
 
 async function updateDeliveryRows(obj: any) {
-  isLoading.value = true;
   let answer = confirm(
     `Вы точно хотите изменить статус доставки? Количество записей: ${obj.idArray.length}`
   );
@@ -69,7 +68,6 @@ async function updateDeliveryRows(obj: any) {
     await storeRansom.updateDeliveryRowsStatus(obj.idArray, obj.flag, "OurRansom", user.value.username);
   filteredRows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "OurRansom");
   rows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "OurRansom");
-  isLoading.value = false;
 }
 
 async function deleteRow(id: number) {
@@ -89,21 +87,17 @@ async function deleteSelectedRows(idArray: number[]) {
 }
 
 async function updateRow() {
-  isLoading.value = true;
   await storeRansom.updateRansomRow(rowData.value, user.value.username, "OurRansom");
   filteredRows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "OurRansom");
   rows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "OurRansom");
   closeModal();
-  isLoading.value = false;
 }
 
 async function createRow() {
-  isLoading.value = true;
   await storeRansom.createRansomRow(rowData.value, user.value.username, "OurRansom");
   filteredRows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "OurRansom");
   rows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "OurRansom");
   closeModal();
-  isLoading.value = false;
 }
 
 async function createCopyRow(id: number) {

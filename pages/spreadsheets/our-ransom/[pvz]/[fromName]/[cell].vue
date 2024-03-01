@@ -70,7 +70,6 @@ async function updateDeliveryRow(obj: any) {
 }
 
 async function updateDeliveryRows(obj: any) {
-  isLoading.value = true;
   let answer = confirm(
     `Вы точно хотите изменить статус доставки? Количество записей: ${obj.idArray.length}`
   );
@@ -86,7 +85,6 @@ async function updateDeliveryRows(obj: any) {
     filteredRows.value = rows.value
   }
 
-  isLoading.value = false;
 }
 
 async function deleteRow(id: number) {
@@ -120,7 +118,6 @@ async function deleteSelectedRows(idArray: number[]) {
 }
 
 async function updateRow() {
-  isLoading.value = true;
   await storeRansom.updateRansomRow(rowData.value, user.value.username, "OurRansom");
   originallyRows.value = await storeRansom.getRansomRows("OurRansom");
 
@@ -132,11 +129,9 @@ async function updateRow() {
     filteredRows.value = rows.value
   }
   closeModal();
-  isLoading.value = false;
 }
 
 async function createRow() {
-  isLoading.value = true;
   await storeRansom.createRansomRow(rowData.value, user.value.username, "OurRansom");
   originallyRows.value = await storeRansom.getRansomRows("OurRansom");
 
@@ -148,7 +143,6 @@ async function createRow() {
     filteredRows.value = rows.value
   }
   closeModal();
-  isLoading.value = false;
 }
 
 async function createCopyRow(id: number) {
