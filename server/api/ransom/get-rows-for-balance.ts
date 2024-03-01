@@ -12,8 +12,20 @@ export default defineEventHandler(async (event) => {
 
         if (flag === 'OurRansom') {
             const rows = await prisma.ourRansom.findMany({
-                where: {
-                    deleted: null,
+                select: {
+                    dispatchPVZ: true,
+                    deliveredPVZ: true,
+                    deliveredSC: true,
+                    prepayment: true,
+                    additionally: true,
+                    deliveredKGT: true,
+                    profit1: true,
+                    amountFromClient1: true,    
+                    issued: true,
+                    priceSite: true,
+                    percentClient: true,
+                    deleted: true,
+                    created_at: true,
                 },
                 orderBy: {
                     created_at: 'desc',
@@ -22,9 +34,23 @@ export default defineEventHandler(async (event) => {
             return rows;
         } else if (flag === 'ClientRansom') {
             const rows = await prisma.clientRansom.findMany({
+                select: {
+                    dispatchPVZ: true,
+                    deliveredPVZ: true,
+                    deliveredSC: true,
+                    prepayment: true,
+                    additionally: true,
+                    deliveredKGT: true,
+                    profit2: true,
+                    amountFromClient2: true,    
+                    issued: true,
+                    percentClient: true,
+                    deleted: true,
+                    created_at: true,
+                },
                 orderBy: {
                     created_at: 'desc',
-                }
+                },
             });
             return rows;
         } else if (flag === 'Delivery') {

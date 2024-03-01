@@ -22,6 +22,15 @@ function getAdditionally(status: string) {
     }
 }
 
+function getPaid(status: string) {
+    if (status === 'paid1') {
+        return 'Оплачено онлайн'
+    } else if (status === 'paid2') {
+        return 'Оплачено наличными'
+    }
+}
+
+
 function getAmountFromClient(status: string, sumOfRejectValue: any) {
     if (status === 'additionally') {
         return
@@ -48,6 +57,7 @@ function getProfit(status: string, sumOfRejectValue: any) {
 
 
 export default defineEventHandler(async (event) => {
+
     try {
         const { idArray, flag, flagRansom, username, sumOfReject } = await readBody<IRequestBody>(event);
 
@@ -67,6 +77,10 @@ export default defineEventHandler(async (event) => {
                 updateField = 'sorted';
                 break;
             case 'paid':
+                updateField = 'paid';
+            case 'paid1':
+                updateField = 'paid';
+            case 'paid2':
                 updateField = 'paid';
                 break;
             case 'additionally':
@@ -139,7 +153,20 @@ export default defineEventHandler(async (event) => {
                     updatedUser: username,
                 },
             });
-        } else if (flagRansom === 'Delivery') {
+        } else if (flagRansom === 'Delivery' && updateField === 'paid') {
+            const updateRow = await prisma.delivery.updateMany({
+                where: {
+                    id: {
+                        in: idArray,
+                    },
+                },
+                data: {
+                    paid: new Date(),
+                    additionally: getPaid(flag),
+                    updatedUser: username,
+                },
+            });
+        } else if (flagRansom === 'Delivery' && updateField !== 'paid') {
             const updateRow = await prisma.delivery.updateMany({
                 where: {
                     id: {

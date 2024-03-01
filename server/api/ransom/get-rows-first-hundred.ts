@@ -18,6 +18,7 @@ export default defineEventHandler(async (event) => {
                 orderBy: {
                     created_at: 'desc',
                 },
+                take: 100,
             });
             return rows;
         } else if (flag === 'ClientRansom') {

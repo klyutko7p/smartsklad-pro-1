@@ -12,8 +12,12 @@ export default defineEventHandler(async (event) => {
 
         if (flag === 'OurRansom') {
             const rows = await prisma.ourRansom.findMany({
-                where: {
-                    deleted: null,
+                select: {
+                    fromName: true,
+                    dispatchPVZ: true,
+                    deliveredPVZ: true,
+                    deliveredSC: true,
+                    cell: true,
                 },
                 orderBy: {
                     created_at: 'desc',

@@ -20,7 +20,9 @@ export default defineEventHandler(async (event) => {
                 pvz: row.pvz,
                 issued: row.issued ? new Date(row.issued).toISOString() : null,
                 received: row.received ? new Date(row.received).toISOString() : null,
+                notation: row.notation,
                 receivedUser: row.receivedUser,
+                receivedUser2: row.receivedUser2,
                 createdUser: row.createdUser,
             },
         })
