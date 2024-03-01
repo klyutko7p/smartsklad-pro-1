@@ -43,7 +43,6 @@ function openModal(row: IOurRansom) {
     rowData.value.issued = rowData.value.issued
       ? storeUsers.getISODateTime(rowData.value.issued)
       : null;
-    console.log(rowData.value.deliveredSC);
   } else {
     rowData.value = {} as IOurRansom;
     rowData.value.fromName = "";
@@ -58,15 +57,7 @@ function closeModal() {
 async function updateDeliveryRow(obj: any) {
   let answer = confirm("Вы точно хотите изменить статус доставки?");
   if (answer) await storeRansom.updateDeliveryStatus(obj.row, obj.flag, "OurRansom", user.value.username);
-  originallyRows.value = await storeRansom.getRansomRows("OurRansom");
-
-  if (user.value.role !== 'PVZ') {
-    rows.value = originallyRows.value?.filter((row) => row.fromName === fromNameString && row.cell === cellString)
-    filteredRows.value = rows.value
-  } else {
-    rows.value = originallyRows.value?.filter((row) => row.fromName === fromNameString && row.cell === cellString && row.deliveredSC !== null && row.issued === null)
-    filteredRows.value = rows.value
-  }
+  filteredRows.value = await storeRansom.getRansomRowsByFromName(fromNameString, cellString, "OurRansom");
 }
 
 async function updateDeliveryRows(obj: any) {
@@ -74,7 +65,6 @@ async function updateDeliveryRows(obj: any) {
     `Вы точно хотите изменить статус доставки? Количество записей: ${obj.idArray.length}`
   );
   if (answer) await storeRansom.updateDeliveryRowsStatus(obj.idArray, obj.flag, "OurRansom", user.value.username);
-
   originallyRows.value = await storeRansom.getRansomRows("OurRansom");
 
   if (user.value.role !== 'PVZ') {
@@ -84,21 +74,12 @@ async function updateDeliveryRows(obj: any) {
     rows.value = originallyRows.value?.filter((row) => row.fromName === fromNameString && row.cell === cellString && row.deliveredSC !== null && row.issued === null)
     filteredRows.value = rows.value
   }
-
 }
 
 async function deleteRow(id: number) {
   let answer = confirm("Вы точно хотите удалить данную строку?");
   if (answer) await storeRansom.deleteRansomRow(id, "OurRansom");
-  originallyRows.value = await storeRansom.getRansomRows("OurRansom");
-
-  if (user.value.role !== 'PVZ') {
-    rows.value = originallyRows.value?.filter((row) => row.fromName === fromNameString && row.cell === cellString)
-    filteredRows.value = rows.value
-  } else {
-    rows.value = originallyRows.value?.filter((row) => row.fromName === fromNameString && row.cell === cellString && row.deliveredSC !== null && row.issued === null)
-    filteredRows.value = rows.value
-  }
+  filteredRows.value = await storeRansom.getRansomRowsByFromName(fromNameString, cellString, "OurRansom");
 }
 
 async function deleteSelectedRows(idArray: number[]) {
@@ -106,71 +87,32 @@ async function deleteSelectedRows(idArray: number[]) {
     `Вы точно хотите удалить данные строки? Количество записей: ${idArray.length}`
   );
   if (answer) await storeRansom.deleteRansomSelectedRows(idArray, "OurRansom");
-  originallyRows.value = await storeRansom.getRansomRows("OurRansom");
-
-  if (user.value.role !== 'PVZ') {
-    rows.value = originallyRows.value?.filter((row) => row.fromName === fromNameString && row.cell === cellString)
-    filteredRows.value = rows.value
-  } else {
-    rows.value = originallyRows.value?.filter((row) => row.fromName === fromNameString && row.cell === cellString && row.deliveredSC !== null && row.issued === null)
-    filteredRows.value = rows.value
-  }
+  filteredRows.value = await storeRansom.getRansomRowsByFromName(fromNameString, cellString, "OurRansom");
 }
 
 async function updateRow() {
+  isLoading.value = true;
+  
   await storeRansom.updateRansomRow(rowData.value, user.value.username, "OurRansom");
-  originallyRows.value = await storeRansom.getRansomRows("OurRansom");
-
-  if (user.value.role !== 'PVZ') {
-    rows.value = originallyRows.value?.filter((row) => row.fromName === fromNameString && row.cell === cellString)
-    filteredRows.value = rows.value
-  } else {
-    rows.value = originallyRows.value?.filter((row) => row.fromName === fromNameString && row.cell === cellString && row.deliveredSC !== null && row.issued === null)
-    filteredRows.value = rows.value
-  }
+  filteredRows.value = await storeRansom.getRansomRowsByFromName(fromNameString, cellString, "OurRansom");
   closeModal();
+
+  isLoading.value = false;
 }
 
 async function createRow() {
+  isLoading.value = true;
+  
   await storeRansom.createRansomRow(rowData.value, user.value.username, "OurRansom");
-  originallyRows.value = await storeRansom.getRansomRows("OurRansom");
-
-  if (user.value.role !== 'PVZ') {
-    rows.value = originallyRows.value?.filter((row) => row.fromName === fromNameString && row.cell === cellString)
-    filteredRows.value = rows.value
-  } else {
-    rows.value = originallyRows.value?.filter((row) => row.fromName === fromNameString && row.cell === cellString && row.deliveredSC !== null && row.issued === null)
-    filteredRows.value = rows.value
-  }
+  filteredRows.value = await storeRansom.getRansomRowsByFromName(fromNameString, cellString, "OurRansom");
   closeModal();
+
+  isLoading.value = false;
 }
 
 async function createCopyRow(id: number) {
   await storeRansom.createCopyRow(id, "OurRansom");
-  originallyRows.value = await storeRansom.getRansomRows("OurRansom");
-
-  if (user.value.role !== 'PVZ') {
-    rows.value = originallyRows.value?.filter((row) => row.fromName === fromNameString && row.cell === cellString)
-    filteredRows.value = rows.value
-  } else {
-    rows.value = originallyRows.value?.filter((row) => row.fromName === fromNameString && row.cell === cellString && row.deliveredSC !== null && row.issued === null)
-    filteredRows.value = rows.value
-  }
-}
-
-async function deleteIssuedRowsTimer() {
-  isLoading.value = true;
-  await storeRansom.deleteIssuedRows("OurRansom");
-  originallyRows.value = await storeRansom.getRansomRows("OurRansom");
-
-  if (user.value.role !== 'PVZ') {
-    rows.value = originallyRows.value?.filter((row) => row.fromName === fromNameString && row.cell === cellString)
-    filteredRows.value = rows.value
-  } else {
-    rows.value = originallyRows.value?.filter((row) => row.fromName === fromNameString && row.cell === cellString && row.deliveredSC !== null && row.issued === null)
-    filteredRows.value = rows.value
-  }
-  isLoading.value = false;
+  filteredRows.value = await storeRansom.getRansomRowsByFromName(fromNameString, cellString, "OurRansom");
 }
 
 const filteredRows = ref<Array<IOurRansom>>();
@@ -211,47 +153,26 @@ function handleFilteredRows(filteredRowsData: IOurRansom[]) {
             month: "2-digit",
             year: "2-digit",
           }) === today ||
-            row.issued === null) &&
-          row.deliveredPVZ !== null
+            row.issued === null)
       );
     }
   }
 }
-
-function timeUntilNext2359() {
-  const now = new Date();
-  const tomorrow2359 = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 23, 59, 0, 0);
-  return tomorrow2359.getTime() - now.getTime();
-}
-
-function scheduleDeleteIssuedRows() {
-  const timeUntilNext2359Data = timeUntilNext2359();
-
-  setTimeout(async () => {
-    await deleteIssuedRowsTimer();
-    scheduleDeleteIssuedRows();
-  }, timeUntilNext2359Data);
-}
-
-scheduleDeleteIssuedRows();
 
 let originallyRows = ref<Array<IOurRansom>>()
 
 onMounted(async () => {
   isLoading.value = true;
   user.value = await storeUsers.getUser();
-  originallyRows.value = await storeRansom.getRansomRows("OurRansom");
-  originallyRows.value = await storeRansom.getRansomRows("OurRansom");
 
   if (user.value.role !== 'PVZ') {
-    rows.value = originallyRows.value?.filter((row) => row.fromName === fromNameString && row.cell === cellString)
+    rows.value = await storeRansom.getRansomRowsByFromName(fromNameString, cellString, "OurRansom")
+    filteredRows.value = rows.value
   } else {
-    rows.value = originallyRows.value?.filter((row) => row.fromName === fromNameString && row.cell === cellString && row.deliveredSC !== null && row.issued === null)
+    rows.value = await storeRansom.getRansomRowsByFromName(fromNameString, cellString, "OurRansom")
+    rows.value = rows.value?.filter((row) => row.deliveredSC !== null && row.issued === null)
+    filteredRows.value = rows.value
   }
-
-  pvz.value = await storePVZ.getPVZ();
-  sortingCenters.value = await storeSortingCenters.getSortingCenters();
-  orderAccounts.value = await storeOrderAccounts.getOrderAccounts();
 
   if (rows.value) {
     handleFilteredRows(rows.value);
@@ -263,6 +184,11 @@ onMounted(async () => {
   }
 
   isLoading.value = false;
+
+  originallyRows.value = await storeRansom.getRansomRowsForModal("OurRansom");
+  pvz.value = await storePVZ.getPVZ();
+  sortingCenters.value = await storeSortingCenters.getSortingCenters();
+  orderAccounts.value = await storeOrderAccounts.getOrderAccounts();
 });
 
 onBeforeMount(() => {
@@ -283,8 +209,11 @@ let isAutoCell = ref(true);
 let isAutoFromName = ref(true);
 let isAutoPVZ = ref(true);
 
-function getCellFromName() {
+async function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
+async function getCellFromName() {
   if (rowData.value.fromName.trim().length === 4) {
     let phoneNum = rowData.value.fromName.trim().toString().slice(-4);
     let row = originallyRows.value?.filter((row) => row.fromName ? row.fromName.slice(-4) === phoneNum : '');
@@ -310,20 +239,20 @@ function getCellFromName() {
   }
 
   if (rowData.value.fromName.trim().length === 12 && isAutoFromName.value === true) {
-    let row = originallyRows.value?.filter((row) => row.fromName === rowData.value.fromName && row.dispatchPVZ === rowData.value.dispatchPVZ);
-    if (row) {
+    let row = originallyRows.value?.filter((row) => row.fromName === rowData.value.fromName && row.dispatchPVZ === rowData.value.dispatchPVZ && (row.deliveredPVZ === null || row.deliveredSC === null));
+    if (row && row.length > 0) {
       rowData.value.cell = row[0].cell;
-    }
+    } 
   }
 }
 
-function changePVZ() {
+async function changePVZ() {
   if (rowData.value.fromName.trim().length === 12 && isAutoFromName.value === true) {
-    let row = originallyRows.value?.filter((row) => row.fromName === rowData.value.fromName && row.dispatchPVZ === rowData.value.dispatchPVZ);
+    let row = originallyRows.value?.filter((row) => row.fromName === rowData.value.fromName && row.dispatchPVZ === rowData.value.dispatchPVZ && (row.deliveredPVZ === null || row.deliveredSC === null));
     if (row && row.length > 0) {
       rowData.value.cell = row[0].cell;
     } else {
-      const unoccupiedCellsAndPVZ = getUnoccupiedCellsAndPVZ();
+      const unoccupiedCellsAndPVZ = await getUnoccupiedCellsAndPVZ();
       const freeCell = unoccupiedCellsAndPVZ.find(cell => cell.dispatchPVZ === rowData.value.dispatchPVZ);
       if (freeCell) {
         rowData.value.cell = freeCell.cell;
@@ -334,7 +263,8 @@ function changePVZ() {
   }
 }
 
-function getUnoccupiedCellsAndPVZ() {
+
+async function getUnoccupiedCellsAndPVZ() {
   const unoccupiedCells = new Map();
 
   originallyRows.value?.forEach(row => {
@@ -348,7 +278,7 @@ function getUnoccupiedCellsAndPVZ() {
     }
   });
 
-  const result = [];
+  const result: any[] = [];
   unoccupiedCells.forEach((value, key) => {
     if (!value.hasEmptyIssued) {
       result.push({ cell: key, dispatchPVZ: value.dispatchPVZ });
@@ -358,7 +288,8 @@ function getUnoccupiedCellsAndPVZ() {
   return result;
 }
 
-function getFromNameFromCell() {
+async function getFromNameFromCell() {
+  await sleep(3000)
   if (rowData.value.cell.trim() && isAutoCell.value === true) {
     let rowFromName = originallyRows.value?.filter((row) => row.cell === rowData.value.cell);
     if (rowFromName) {
@@ -481,6 +412,13 @@ function getFromNameFromCell() {
                 <input :disabled="user.percentClient1 === 'READ'"
                   class="bg-transparent rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-yellow-600 text-sm sm:leading-6 disabled:text-gray-400"
                   v-model="rowData.percentClient" placeholder="По умолчанию: 10" type="number" />
+              </div>
+
+              <div class="grid grid-cols-2 mb-5" v-if="user.deliveredKGT1 === 'READ' || user.deliveredKGT1 === 'WRITE'">
+                <label for="deliveredKGT1" class="max-sm:text-sm">Дополнительный доход</label>
+                <input :disabled="user.deliveredKGT1 === 'READ'"
+                  class="bg-transparent rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-yellow-600 text-sm sm:leading-6 disabled:text-gray-400"
+                  v-model="rowData.deliveredKGT" placeholder="По умолчанию: 0" type="number" />
               </div>
 
               <div class="grid grid-cols-2 mb-5" v-if="user.orderPVZ1 === 'READ' || user.orderPVZ1 === 'WRITE'">
@@ -674,6 +612,13 @@ function getFromNameFromCell() {
                 <input :disabled="user.percentClient1 === 'READ'"
                   class="bg-transparent rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-yellow-600 text-sm sm:leading-6 disabled:text-gray-400"
                   v-model="rowData.percentClient" placeholder="По умолчанию: 10" type="number" />
+              </div>
+
+              <div class="grid grid-cols-2 mb-5" v-if="user.deliveredKGT1 === 'READ' || user.deliveredKGT1 === 'WRITE'">
+                <label for="deliveredKGT1" class="max-sm:text-sm">Дополнительный доход</label>
+                <input :disabled="user.deliveredKGT1 === 'READ'"
+                  class="bg-transparent rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-yellow-600 text-sm sm:leading-6 disabled:text-gray-400"
+                  v-model="rowData.deliveredKGT" placeholder="По умолчанию: 0" type="number" />
               </div>
 
               <div class="grid grid-cols-2 mb-5" v-if="user.orderPVZ1 === 'READ' || user.orderPVZ1 === 'WRITE'">

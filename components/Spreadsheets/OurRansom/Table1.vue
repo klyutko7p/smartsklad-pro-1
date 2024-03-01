@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { read, utils, writeFile } from "xlsx";
 
-const router = useRouter();
+const router = useRouter()
+const route = useRoute()
+
 const storeUsers = useUsersStore();
 const storeRansom = useRansomStore()
 
@@ -51,7 +53,7 @@ const props = defineProps({
 
 async function exportToExcel() {
     perPage.value = await totalRows.value;
-    await updateCurrentPageData();
+    await updateCurrentPageDataDeleted();
 
     let table = await document.querySelector("#theTable");
 
@@ -85,13 +87,43 @@ interface RowData {
     orderPVZ: Date | null | string | number;
 }
 
+let scanStringItem = ref('')
+
+let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+function scanItem() {
+    if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+    }
+
+    timeoutId = setTimeout(async () => {
+        let scannedLink = scanStringItem.value.trim();
+        scannedLink = convertToURL(scannedLink);
+        let rowData = await storeRansom.getRansomRowsById(+scannedLink, "OurRansom");
+        handleCheckboxChange(rowData);
+        scanStringItem.value = "";
+    }, 1500);
+}
+
+function convertToURL(inputString: string) {
+    if (inputString.includes("/")) {
+        const parts = inputString.split("/");
+        const entryID = parts[parts.length - 1];
+        return entryID;
+    } else if (inputString.includes(".")) {
+        const parts = inputString.split(".");
+        const entryID = parts[parts.length - 1];
+        return entryID;
+    }
+}
+
 const handleCheckboxChange = (row: IOurRansom): void => {
     if (isChecked(row.id)) {
         checkedRows.value = checkedRows.value.filter((id) => id !== row.id);
         allSum.value = allSum.value.filter((obj) => obj.rowId !== row.id);
     } else {
         checkedRows.value.push(row.id);
-        allSum.value.push({ rowId: row.id, amount: Math.ceil(row.amountFromClient1 / 10) * 10, issued: row.issued, deliveredPVZ: row.deliveredPVZ, orderPVZ: row.orderPVZ, deliveredSC: row.deliveredSC });
+        allSum.value.push({ rowId: row.id, amount: Math.ceil(row.amountFromClient1 / 10) * 10, issued: row.issued, deliveredPVZ: row.deliveredPVZ, orderPVZ: row.orderPVZ, deliveredSC: row.deliveredSC, });
     }
     getAllSum.value = allSum.value.filter((obj) => obj.issued === null).reduce((sum, obj) => sum + obj.amount, 0);
     showButton.value = allSum.value.every(obj => obj.issued === null);
@@ -104,7 +136,8 @@ const showDeletedRows = ref(false);
 const perPage = ref(100)
 const currentPage = ref(1)
 const totalPages = computed(() => Math.ceil((props.rows?.length || 0) / perPage.value));
-const totalRows = computed(() => Math.ceil(props.rows?.length || 0));
+const totalRows = computed(() => Math.ceil(props.rows?.filter((row) => row.deleted === null).length || 0));
+
 let returnRows = ref<Array<IOurRansom>>()
 
 function updateCurrentPageData() {
@@ -113,6 +146,17 @@ function updateCurrentPageData() {
 
     if (showDeletedRows.value) {
         returnRows.value = props.rows?.slice(startIndex, endIndex);
+    } else {
+        returnRows.value = props.rows?.filter((row) => !row.deleted).slice(startIndex, endIndex);
+    }
+}
+
+async function updateCurrentPageDataDeleted() {
+    const startIndex = (currentPage.value - 1) * perPage.value
+    const endIndex = startIndex + perPage.value
+
+    if (showDeletedRows.value) {
+        returnRows.value = await storeRansom.getRansomRowsWithDeleted("OurRansom");
     } else {
         returnRows.value = props.rows?.filter((row) => !row.deleted).slice(startIndex, endIndex);
     }
@@ -141,6 +185,7 @@ let isVisiblePages = ref(true)
 
 
 onMounted(async () => {
+    focusInput()
 
     updateCurrentPageData();
 
@@ -155,11 +200,19 @@ onMounted(async () => {
 
 
 let showOthersVariants = ref(false)
+const myInput = ref(null);
+
+function focusInput() {
+    myInput.value.focus();
+}
 
 </script>
 <template>
     <div class="flex items-center justify-between max-lg:block mt-10">
         <div>
+            <input class="block w-full bg-transparent mb-5 border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-gray-300 placeholder:text-gray-400 rounded-2xl focus:ring-2 focus:ring-yellow-600 sm:text-sm sm:leading-6"
+            placeholder="Отсканируйте товар" ref="myInput" autofocus v-model="scanStringItem" @input="scanItem" />
+
             <div class="flex items-center max-sm:flex-col max-sm:items-start gap-5 mb-5">
                 <h1 class="text-xl" v-if="user.role !== 'PVZ'">Товаров в работе: <span
                         class="text-secondary-color font-bold">{{
@@ -174,6 +227,8 @@ let showOthersVariants = ref(false)
                     {{ showDeletedRows ? 'Скрыть удаленное' : 'Показать удаленное' }}
                 </UIActionButton>
             </div>
+
+
 
         </div>
         <div class="flex items-end max-lg:mt-5 max-lg:justify-between gap-20">
@@ -218,7 +273,6 @@ let showOthersVariants = ref(false)
         <UIActionButton v-if="user.issued1 === 'WRITE' && showButton" @click="showOthersVariants = !showOthersVariants">
             Выдать клиенту
         </UIActionButton>
-
         <div v-if="showOthersVariants" class="flex flex-col gap-3">
             <UIActionButton2 v-if="user.additionally1 === 'WRITE'" @click="updateDeliveryRows('additionally3')">Оплата
                 наличными
@@ -251,8 +305,8 @@ let showOthersVariants = ref(false)
             </UIActionButton2>
             <UIActionButton2 v-if="user.additionally1 === 'WRITE'" @click="updateDeliveryRows('additionally1')">Отказ клиент
             </UIActionButton2>
-            <UIActionButton2 v-if="user.additionally1 === 'WRITE'" @click="updateDeliveryRows('additionally2')">Отказ брак
-            </UIActionButton2>
+            <UIActionButton v-if="user.additionally1 === 'WRITE'" @click="updateDeliveryRows('additionally2')">Отказ брак
+            </UIActionButton>
         </div>
     </div>
 
@@ -266,11 +320,11 @@ let showOthersVariants = ref(false)
                         Выделение
                     </th>
                     <th scope="col" class="exclude-row border-2 text-[10px]"
-                        v-if="user.dataOurRansom === 'WRITE' && (user.role === 'ADMIN' || user.role === 'ADMINISTRATOR')">
+                        v-if="user.dataOurRansom === 'WRITE' && user.role === 'ADMIN' || user.role === 'ADMINISTRATOR'">
                         изменение
                     </th>
                     <th scope="col" class="border-2 px-3">id</th>
-                    <th scope="col" class=" border-2" v-if="user.clientLink1 === 'READ' || user.clientLink1 === 'WRITE'">
+                    <th scope="col" class="border-2" v-if="user.clientLink1 === 'READ' || user.clientLink1 === 'WRITE'">
                         ссылка для клиента
                     </th>
                     <th scope="col" class=" border-2" v-if="user.cell1 === 'READ' || user.cell1 === 'WRITE'">
@@ -297,6 +351,9 @@ let showOthersVariants = ref(false)
                     <th scope="col" class="border-2"
                         v-if="user.percentClient1 === 'READ' || user.percentClient1 === 'WRITE'">
                         процент с клиента (%)
+                    </th>
+                    <th scope="col" class="border-2" v-if="user.deliveredKGT1 === 'READ' || user.deliveredKGT1 === 'WRITE'">
+                        дополнительный доход
                     </th>
                     <th scope="col" class="border-2"
                         v-if="user.amountFromClient1 === 'READ' || user.amountFromClient1 === 'WRITE'">
@@ -340,7 +397,7 @@ let showOthersVariants = ref(false)
                     <th scope="col" class="border-2" v-if="user.role === 'ADMIN' || user.role === 'ADMINISTRATOR'">изменен
                     </th>
                     <th scope="col" class="exclude-row px-6 py-3 border-2"
-                        v-if="user.dataOurRansom === 'WRITE' && (user.role === 'ADMIN' || user.role === 'ADMINISTRATOR')">
+                        v-if="user.dataOurRansom === 'WRITE' && user.role === 'ADMIN' || user.role === 'ADMINISTRATOR'">
                         удаление
                     </th>
                 </tr>
@@ -354,16 +411,18 @@ let showOthersVariants = ref(false)
                             @change="handleCheckboxChange(row)" />
                     </td>
                     <td class="border-2"
-                        v-if="user.dataOurRansom === 'WRITE' && (user.role === 'ADMIN' || user.role === 'ADMINISTRATOR')">
+                        v-if="user.dataOurRansom === 'WRITE' && user.role === 'ADMIN' || user.role === 'ADMINISTRATOR'">
                         <Icon @click="openModal(row)"
                             class="text-green-600 cursor-pointer hover:text-green-300 duration-200"
                             name="material-symbols:edit" size="32" />
                     </td>
                     <th scope="row" class="border-2 font-medium underline text-secondary-color whitespace-nowrap">
-                        <NuxtLink class="cursor-pointer hover:text-orange-200 duration-200"
+                        <NuxtLink v-if="user.role !== 'PVZ' && user.role !== 'ADMINISTRATOR'"
+                            class="cursor-pointer hover:text-orange-200 duration-200"
                             :to="`/spreadsheets/record/1/${row.id}`">
                             {{ row.id }}
                         </NuxtLink>
+                        <h1 v-else>{{ row.id }}</h1>
                     </th>
                     <td class="px-3 py-4 border-2 underline text-secondary-color whitespace-nowrap uppercase overflow-hidden max-w-[50px]"
                         v-if="user.clientLink1 === 'READ' || user.clientLink1 === 'WRITE'">
@@ -400,8 +459,11 @@ let showOthersVariants = ref(false)
                     <td class="border-2" v-if="user.percentClient1 === 'READ' || user.percentClient1 === 'WRITE'">
                         {{ row.percentClient }}
                     </td>
+                    <td class="border-2" v-if="user.deliveredKGT1 === 'READ' || user.deliveredKGT1 === 'WRITE'">
+                        {{ row.deliveredKGT }}
+                    </td>
                     <td class="border-2" v-if="user.amountFromClient1 === 'READ' || user.amountFromClient1 === 'WRITE'">
-                        {{ row.amountFromClient1 }}
+                        {{ Math.ceil(row.amountFromClient1 / 10) * 10 }}
                     </td>
                     <td class="px-2 py-4 border-2" v-if="user.dispatchPVZ1 === 'READ' || user.dispatchPVZ1 === 'WRITE'">
                         {{ row.dispatchPVZ }}
@@ -433,15 +495,17 @@ let showOthersVariants = ref(false)
 
                     <td class="px-1 py-4 border-2" v-if="(user.profit1 === 'READ' || user.profit1 === 'WRITE') &&
                         (row.additionally !== 'Отказ клиент' && row.additionally !== 'Отказ брак') && !row.prepayment">
-                        {{ row.percentClient !== 0 ? row.amountFromClient1 - row.priceSite +
+                        {{ row.percentClient !== 0 ? Math.ceil(row.amountFromClient1 / 10) * 10 - row.priceSite +
                             row.deliveredKGT : row.deliveredKGT }}
                     </td>
 
                     <td class="px-1 py-4 border-2" v-if="(user.profit1 === 'READ' || user.profit1 === 'WRITE') &&
                         (row.additionally !== 'Отказ клиент' && row.additionally !== 'Отказ брак') && row.prepayment">
-                        {{ row.percentClient !== 0 ? (row.priceSite * row.percentClient / 100) + row.deliveredKGT :
+                        {{ row.percentClient !== 0 ? Math.ceil((row.priceSite * row.percentClient / 100) + row.deliveredKGT)
+                            :
                             row.deliveredKGT }}
                     </td>
+
 
                     <td class="px-1 py-4 border-2" v-if="(user.profit1 === 'READ' || user.profit1 === 'WRITE') &&
                         (row.additionally === 'Отказ клиент' || row.additionally === 'Отказ брак')">
