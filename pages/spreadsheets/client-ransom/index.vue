@@ -50,55 +50,44 @@ async function updateDeliveryRow(obj: any) {
   let answer = confirm("Вы точно хотите изменить статус доставки?");
   if (answer) await storeRansom.updateDeliveryStatus(obj.row, obj.flag, 'ClientRansom', user.value.username);
   filteredRows.value = await storeRansom.getRansomRows("ClientRansom");
-  rows.value = await storeRansom.getRansomRows('ClientRansom');
 }
 
 async function updateDeliveryRows(obj: any) {
   let answer = confirm(`Вы точно хотите изменить статус доставки? Количество записей: ${obj.idArray.length}`);
   if (answer) await storeRansom.updateDeliveryRowsStatus(obj.idArray, obj.flag, 'ClientRansom', user.value.username);
   filteredRows.value = await storeRansom.getRansomRows("ClientRansom");
-  rows.value = await storeRansom.getRansomRows('OurRansom');
 }
 
 async function deleteRow(id: number) {
   let answer = confirm("Вы точно хотите удалить данную строку?");
   if (answer) await storeRansom.deleteRansomRow(id, 'ClientRansom');
   filteredRows.value = await storeRansom.getRansomRows("ClientRansom");
-  rows.value = await storeRansom.getRansomRows('ClientRansom');
 }
 
 async function deleteSelectedRows(idArray: number[]) {
   let answer = confirm(`Вы точно хотите удалить данные строки? Количество записей: ${idArray.length}`);
   if (answer) await storeRansom.deleteRansomSelectedRows(idArray, 'ClientRansom');
   filteredRows.value = await storeRansom.getRansomRows("ClientRansom");
-  rows.value = await storeRansom.getRansomRows('ClientRansom');
 }
 
 async function updateRow() {
-  isLoading.value = true;
   await storeRansom.updateRansomRow(rowData.value, user.value.username, 'ClientRansom');
+  await closeModal();
   filteredRows.value = await storeRansom.getRansomRows("ClientRansom");
-  rows.value = await storeRansom.getRansomRows('ClientRansom');
-  closeModal();
-  isLoading.value = false;
 }
 
 async function createRow() {
-  isLoading.value = true;
   await storeRansom.createRansomRow(rowData.value, user.value.username, 'ClientRansom');
+  await closeModal();
   filteredRows.value = await storeRansom.getRansomRows("ClientRansom");
-  rows.value = await storeRansom.getRansomRows('ClientRansom');
-  closeModal();
-  isLoading.value = false;
 }
 
 async function createCopyRow(id: number) {
   await storeRansom.createCopyRow(id, 'ClientRansom');
   filteredRows.value = await storeRansom.getRansomRows("ClientRansom");
-  rows.value = await storeRansom.getRansomRows('ClientRansom');
 }
 
-async function deleteIssuedRowsTimer() {
+async function deleteIssuedRows() {
   isLoading.value = true;
   await storeRansom.deleteIssuedRows("ClientRansom");
   filteredRows.value = await storeRansom.getRansomRows("ClientRansom");
@@ -106,22 +95,14 @@ async function deleteIssuedRowsTimer() {
   isLoading.value = false;
 }
 
-function timeUntilNext2359() {
-  const now = new Date();
-  const tomorrow2359 = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 23, 59, 0, 0);
-  return tomorrow2359.getTime() - now.getTime();
+function deleteIssuedRowsTimer() {
+  const currentTime = new Date();
+  const currentHour = currentTime.getHours();
+  const currentMinute = currentTime.getMinutes();
+  if (currentHour === 22 && currentMinute >= 0 || currentHour === 23 && currentMinute <= 59) {
+    deleteIssuedRows();
+  }
 }
-
-function scheduleDeleteIssuedRows() {
-  const timeUntilNext2359Data = timeUntilNext2359();
-
-  setTimeout(async () => {
-    await deleteIssuedRowsTimer();
-    scheduleDeleteIssuedRows();
-  }, timeUntilNext2359Data);
-}
-
-scheduleDeleteIssuedRows();
 
 
 const filteredRows = ref<Array<IClientRansom>>();
@@ -160,7 +141,6 @@ function handleFilteredRows(filteredRowsData: IClientRansom[]) {
             month: "2-digit",
             year: "2-digit",
           }) === today || row.issued === null)
-          && row.deliveredPVZ !== null
       );
     }
   }
@@ -171,15 +151,16 @@ onMounted(async () => {
   isLoading.value = true;
   user.value = await storeUsers.getUser();
   rows.value = await storeRansom.getRansomRows('ClientRansom');
-  pvz.value = await storePVZ.getPVZ();
-  sortingCenters.value = await storeSortingCenters.getSortingCenters();
-  marketplaces.value = await storeMarketplaces.getMarketplaces();
 
   if (rows.value) {
     handleFilteredRows(rows.value)
   }
 
   isLoading.value = false;
+
+  pvz.value = await storePVZ.getPVZ();
+  sortingCenters.value = await storeSortingCenters.getSortingCenters();
+  marketplaces.value = await storeMarketplaces.getMarketplaces();
 });
 
 onBeforeMount(() => {
@@ -208,14 +189,7 @@ function getCellFromName() {
   }
 }
 
-function getFromNameFromCell() {
-  if (rowData.value.cell.trim() && isAutoCell.value === true) {
-    let rowFromName = rows.value?.filter((row) => row.cell === rowData.value.cell);
-    if (rowFromName) {
-      rowData.value.fromName = rowFromName[0].fromName;
-    }
-  }
-}
+
 
 </script>
 
@@ -266,11 +240,7 @@ function getFromNameFromCell() {
                   <div>
                     <input :disabled="user.cell2 === 'READ'"
                       class="bg-transparent w-full rounded-md border-2 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-yellow-600 sm:text-sm sm:leading-6 disabled:text-gray-400"
-                      v-model="rowData.cell" @input="getFromNameFromCell" type="text" />
-                    <div class="flex gap-3 items-center justify-center mt-1">
-                      <h1 class="max-sm:text-sm">АВТО</h1>
-                      <input type="checkbox" v-model="isAutoCell" />
-                    </div>
+                      v-model="rowData.cell" type="text" />
                   </div>
                 </div>
   
@@ -431,11 +401,7 @@ function getFromNameFromCell() {
                 <div>
                   <input :disabled="user.cell2 === 'READ'"
                     class="bg-transparent w-full rounded-md border-2 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-yellow-600 sm:text-sm sm:leading-6 disabled:text-gray-400"
-                    v-model="rowData.cell" @input="getFromNameFromCell" type="text" />
-                  <div class="flex gap-3 items-center justify-center mt-1">
-                    <h1 class="max-sm:text-sm">АВТО</h1>
-                    <input type="checkbox" v-model="isAutoCell" />
-                  </div>
+                    v-model="rowData.cell" type="text" />
                 </div>
               </div>
 

@@ -30,11 +30,10 @@ function updateCurrentPageData() {
   }
 
   if (searchQuery.value !== '') {
-    returnRows.value = props.rows?.filter((row) => {
-      const fromNameMatch = row.fromName && row.fromName.includes(searchQuery.value);
-      const cellMatch = row.cell && row.cell.includes(searchQuery.value);
-      return fromNameMatch || cellMatch;
-    });
+    returnRows.value = props.rows?.filter((row) => (row.cell && row.cell.includes(searchQuery.value.trim())));
+    if (returnRows.value?.length === 0) {
+      returnRows.value = props.rows?.filter((row) => (row.fromName && row.fromName.includes(searchQuery.value.trim())));
+    }
   }
 }
 
@@ -46,6 +45,8 @@ const toggleShowDeletedRows = () => {
   updateRowsByFromName();
 };
 
+let fullURL = ref('')
+let fullArrayURL = ref<string[]>()
 
 onMounted(async () => {
 
@@ -53,6 +54,11 @@ onMounted(async () => {
 
   if (props.user.role === 'SORTIROVKA') {
     perPage.value = totalRows.value;
+  }
+
+  if (process.browser) {
+    fullURL.value = window.location.href
+    fullArrayURL.value = fullURL.value.split('/')
   }
 
   await storeRansom.getSumOfRejection()
@@ -64,6 +70,7 @@ function updateRowsByFromName() {
   returnRows.value = returnRows.value?.filter((element, index) => {
     return returnRows.value?.findIndex(i => i.cell === element.cell && i.fromName === element.fromName) === index;
   })
+  returnRows.value = returnRows.value?.sort((a, b) => +b.cell - +a.cell)
 }
 
 let searchQuery = ref('')
@@ -113,7 +120,7 @@ function convertToURL(inputString: string) {
     const recordID = parts[parts.length - 2];
     const entryID = parts[parts.length - 1];
 
-    const url = `https://smartsklad-pro-1.netlify.app/spreadsheets/record/${recordID}/${entryID}`;
+    const url = `${fullArrayURL.value[0] + '//' + fullArrayURL.value[2] + '/spreadsheets/record/'}${recordID}/${entryID}`;
 
     return url;
   } else if (inputString.includes('.')) {
@@ -122,7 +129,7 @@ function convertToURL(inputString: string) {
     const recordID = parts[parts.length - 2];
     const entryID = parts[parts.length - 1];
 
-    const url = `https://smartsklad-pro-1.netlify.app/spreadsheets/record/${recordID}/${entryID}`;
+    const url = `${fullArrayURL.value[0] + '//' + fullArrayURL.value[2] + '/spreadsheets/record/'}${recordID}/${entryID}`;
 
     return url;
   }
@@ -142,16 +149,11 @@ function isValidUrl(url: string): boolean {
 <template>
   <div class="flex items-center justify-between max-lg:block mt-10">
     <div>
-      <div class="flex items-center max-sm:flex-col max-sm:items-start gap-5 mb-5">
+      <div class="flex items-center max-sm:flex-col max-sm:items-start gap-5">
         <h1 class="text-xl" v-if="user.role !== 'PVZ'">Товаров в работе: <span class="text-secondary-color font-bold">{{
           totalRows }}</span> </h1>
         <h1 class="text-xl" v-if="user.role === 'PVZ'">Товаров к выдаче: <span class="text-secondary-color font-bold">{{
           totalRows }}</span> </h1>
-      </div>
-      <div class="flex items-center gap-5" v-if="user.role === 'ADMIN' || user.role === 'ADMINISTRATOR'">
-        <UIActionButton @click="toggleShowDeletedRows">
-          {{ showDeletedRows ? 'Скрыть удаленное' : 'Показать удаленное' }}
-        </UIActionButton>
       </div>
     </div>
   </div>

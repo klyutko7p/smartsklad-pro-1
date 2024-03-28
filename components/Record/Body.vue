@@ -59,7 +59,11 @@ function formatPhoneNumber(phoneNumber: string) {
 }
 
 function printPage() {
-  window.print();
+  if (props.user.role === 'SORTIROVKA' || props.user.role === 'ADMIN') {
+    window.print();
+  } else {
+    toast.error("Доступ к печати запрещён")
+  }
 }
 </script>
 
@@ -169,16 +173,18 @@ function printPage() {
     </div>
   </div>
 
-  <div class="flex items-center gap-5 mt-10">
-    <h1 class="text-2xl">Распечатка Штрих кода</h1>
-    <UIMainButton :disabled="row.deliveredSC === null" @click="printPage">РАСПЕЧАТАТЬ ЭТИКЕТКУ</UIMainButton>
-  </div>
-  <div class="flex flex-col print-content">
-    <div class="gap-0 flex flex-col absolute mr-10">
-      <CodeQR :value="value" class="mt-10" />
-      <h1 class="text-base"> {{ row.id }} </h1>
-      <h1 class="text-7xl max-w-[500px] text-center relative mb-3" v-if="row.cell">{{ row.cell }}</h1>
-      <h1 class="text-8xl text-center max-w-[500px] relative">{{ row.dispatchPVZ }}</h1>
+  <div v-if="user.role === 'SORTIROVKA' || user.role === 'ADMIN'">
+    <div class="flex items-center gap-5 mt-10">
+      <h1 class="text-2xl">Распечатка Штрих кода</h1>
+      <UIMainButton :disabled="row.deliveredSC === null" @click="printPage">РАСПЕЧАТАТЬ ЭТИКЕТКУ</UIMainButton>
+    </div>
+    <div class="flex flex-col print-content">
+      <div class="gap-0 flex flex-col absolute mr-10">
+        <CodeQR :value="value" class="mt-10" />
+        <h1 class="text-base"> {{ row.id }} </h1>
+        <h1 class="text-[140px] leading-[100px] max-w-[500px] text-center relative mb-3" v-if="row.cell">{{ row.cell }}</h1>
+        <h1 class="text-8xl mt-2 text-center max-w-[500px] relative">{{ row.dispatchPVZ }}</h1>
+      </div>
     </div>
   </div>
 </template>
@@ -199,7 +205,7 @@ function printPage() {
   .print-content {
     position: absolute;
     left: 15%;
-    top: 20%;
+    top: 10%;
   }
 }
 </style>

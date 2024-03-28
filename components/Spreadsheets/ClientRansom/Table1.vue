@@ -73,6 +73,7 @@ const isChecked = (rowId: number): boolean => {
   return checkedRows.value.includes(rowId);
 };
 
+
 interface RowData {
   rowId: number;
   amount: number;
@@ -82,13 +83,13 @@ interface RowData {
   orderPVZ: Date | null | string | number;
 }
 
-const handleCheckboxChange = (row: IOurRansom): void => {
+const handleCheckboxChange = (row: IClientRansom): void => {
   if (isChecked(row.id)) {
     checkedRows.value = checkedRows.value.filter((id) => id !== row.id);
     allSum.value = allSum.value.filter((obj) => obj.rowId !== row.id);
   } else {
     checkedRows.value.push(row.id);
-    allSum.value.push({ rowId: row.id, amount: Math.ceil(row.amountFromClient1 / 10) * 10, issued: row.issued, deliveredPVZ: row.deliveredPVZ, orderPVZ: row.orderPVZ, deliveredSC: row.deliveredSC, });
+    allSum.value.push({ rowId: row.id, amount: Math.ceil(row.amountFromClient2 / 10) * 10, issued: row.issued, deliveredPVZ: row.deliveredPVZ, orderPVZ: row.orderPVZ, deliveredSC: row.deliveredSC, });
   }
   getAllSum.value = allSum.value.filter((obj) => obj.issued === null).reduce((sum, obj) => sum + obj.amount, 0);
   showButton.value = allSum.value.every(obj => obj.issued === null);
@@ -155,6 +156,7 @@ const router = useRouter()
 let showOthersVariants = ref(false)
 
 </script>
+
 <template>
   <div class="flex items-center justify-between max-lg:block mt-10">
     <div>
@@ -185,28 +187,25 @@ let showOthersVariants = ref(false)
           </button>
         </div>
       </div>
-      <Icon class="duration-200 hover:text-secondary-color cursor-pointer" size="40" name="material-symbols:sheets-add-on"
-        @click="exportToExcel" />
+      <Icon class="duration-200 hover:text-secondary-color cursor-pointer" size="40"
+        name="material-symbols:sheets-add-on" @click="exportToExcel" />
     </div>
   </div>
 
   <div class="fixed top-24 z-40 left-1/2 translate-x-[-50%] translate-y-[-50%]" v-if="getAllSum > 0">
-    <h1 class="text-base backdrop-blur-xl p-2 rounded-xl border-2 text-secondary-color font-bold">К оплате: {{
-      getAllSum }} </h1>
+    <h1 class="text-base text-center backdrop-blur-xl p-2 rounded-xl border-2 text-secondary-color font-bold">
+      К оплате: {{ getAllSum }} <br>
+      Количество товаров: {{ checkedRows.length }}
+    </h1>
   </div>
 
   <div class="fixed z-40 flex flex-col gap-3 left-1/2 translate-x-[-50%] translate-y-[-50%]"
     v-if="user.dataClientRansom === 'WRITE' && checkedRows.length > 0 && user.role !== 'PVZ'">
-    <UIActionButton
-      v-if="user.dataClientRansom === 'WRITE' && user.role === 'ADMIN' || user.role === 'ADMINISTRATOR' && checkedRows.length === 1"
-      @click="createCopyRow">Скопировать запись</UIActionButton>
     <UIActionButton v-if="user.role === 'ADMIN' || user.role === 'ADMINISTRATOR' && user.dataOurRansom === 'WRITE'"
       @click="deleteSelectedRows">Удалить
       выделенные записи</UIActionButton>
-    <UIActionButton v-if="user.deliveredSC1 === 'WRITE' && showButtonSC" @click="updateDeliveryRows('SC')">Доставить на сц
-    </UIActionButton>
-    <UIActionButton v-if="user.deliveredPVZ1 === 'WRITE' && showButtonPVZ" @click="updateDeliveryRows('PVZ')">Доставить на
-      пвз
+    <UIActionButton v-if="user.deliveredSC1 === 'WRITE' && showButtonSC" @click="updateDeliveryRows('SC')">Доставить на
+      сц
     </UIActionButton>
     <UIActionButton v-if="user.issued1 === 'WRITE' && showButton" @click="showOthersVariants = !showOthersVariants">
       Выдать клиенту
@@ -228,14 +227,13 @@ let showOthersVariants = ref(false)
 
   <div class="fixed z-40 flex flex-col gap-3 top-44 left-1/2 translate-x-[-50%] translate-y-[-50%]"
     v-if="user.dataClientRansom === 'WRITE' && checkedRows.length > 0 && user.role === 'PVZ'">
-    <UIActionButton v-if="user.deliveredPVZ2 === 'WRITE' && showButtonPVZ" @click="updateDeliveryRows('PVZ')">Доставить
-      на пвз
-    </UIActionButton>
-    <UIActionButton v-if="user.issued2 === 'WRITE' && showButton" @click="showOthersVariants = !showOthersVariants">Выдать
+    <UIActionButton v-if="user.issued2 === 'WRITE' && showButton" @click="showOthersVariants = !showOthersVariants">
+      Выдать
       клиенту
     </UIActionButton>
     <div v-if="showOthersVariants" class="flex flex-col gap-3">
-      <UIActionButton2 v-if="user.additionally2 === 'WRITE'" @click="updateDeliveryRows('additionally3')">Оплата наличными
+      <UIActionButton2 v-if="user.additionally2 === 'WRITE'" @click="updateDeliveryRows('additionally3')">Оплата
+        наличными
       </UIActionButton2>
       <UIActionButton2 v-if="user.additionally2 === 'WRITE'" @click="updateDeliveryRows('additionally')">Оплачено онлайн
       </UIActionButton2>
@@ -256,7 +254,7 @@ let showOthersVariants = ref(false)
             Выделение
           </th>
           <th scope="col" class="exclude-row border-2 text-[10px]"
-            v-if="user.dataClientRansom === 'WRITE' && (user.role === 'ADMIN' || user.role === 'ADMINISTRATOR')">
+            v-if="(user.dataClientRansom === 'WRITE' && (user.role === 'ADMIN' || user.role === 'ADMINISTRATOR')) || user.role === 'SORTIROVKA'">
             изменение
           </th>
           <th scope="col" class="border-2 px-3">id</th>
@@ -284,7 +282,8 @@ let showOthersVariants = ref(false)
           <th scope="col" class="border-2" v-if="user.percentClient2 === 'READ' || user.percentClient2 === 'WRITE'">
             процент с клиента (%)
           </th>
-          <th scope="col" class="border-2" v-if="user.amountFromClient2 === 'READ' || user.amountFromClient2 === 'WRITE'">
+          <th scope="col" class="border-2"
+            v-if="user.amountFromClient2 === 'READ' || user.amountFromClient2 === 'WRITE'">
             сумма с клиента
           </th>
           <th scope="col" class="border-2" v-if="user.dispatchPVZ2 === 'READ' || user.dispatchPVZ2 === 'WRITE'">
@@ -329,14 +328,16 @@ let showOthersVariants = ref(false)
             <input type="checkbox" :value="row.id" :checked="isChecked(row.id)" @change="handleCheckboxChange(row)" />
           </td>
           <td class="border-2"
-            v-if="user.dataClientRansom === 'WRITE' && (user.role === 'ADMIN' || user.role === 'ADMINISTRATOR')">
+            v-if="(user.dataClientRansom === 'WRITE' && (user.role === 'ADMIN' || user.role === 'ADMINISTRATOR')) || user.role === 'SORTIROVKA'">
             <Icon @click="openModal(row)" class="text-green-600 cursor-pointer hover:text-green-300 duration-200"
               name="material-symbols:edit" size="32" />
           </td>
           <th scope="row" class="border-2 font-medium underline text-secondary-color whitespace-nowrap">
-            <NuxtLink class="cursor-pointer hover:text-orange-200 duration-200" :to="`/spreadsheets/record/2/${row.id}`">
+            <NuxtLink v-if="user.role !== 'PVZ' && user.role !== 'ADMINISTRATOR'"
+              class="cursor-pointer hover:text-orange-200 duration-200" :to="`/spreadsheets/record/2/${row.id}`">
               {{ row.id }}
             </NuxtLink>
+            <h1 v-else>{{ row.id }}</h1>
           </th>
           <td
             class="px-3 py-4 border-2 underline text-secondary-color whitespace-nowrap uppercase overflow-hidden max-w-[50px]"
@@ -397,11 +398,11 @@ let showOthersVariants = ref(false)
           </td>
 
           <td class="border-2" v-if="(user.profit2 === 'READ' || user.profit2 === 'WRITE') &&
-            (row.additionally !== 'Отказ клиент' && row.additionally !== 'Отказ брак')">
+          (row.additionally !== 'Отказ клиент' && row.additionally !== 'Отказ брак')">
             {{ row.profit2 }}
           </td>
           <td class="border-2" v-if="(user.profit2 === 'READ' || user.profit2 === 'WRITE') &&
-            (row.additionally === 'Отказ клиент' || row.additionally === 'Отказ брак')">
+          (row.additionally === 'Отказ клиент' || row.additionally === 'Отказ брак')">
             {{ row.profit2 }}
           </td>
 

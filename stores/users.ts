@@ -55,10 +55,11 @@ export const useUsersStore = defineStore("users", () => {
 
 
     async function signOut() {
-        const cookies = Object.keys(Cookies.get());
-        cookies.forEach(cookie => Cookies.remove(cookie));
-        userData = {} as User;
-        router.push('/auth/login');
+        Cookies.remove('token')
+        Cookies.remove('user')
+        localStorage.clear();
+        userData = {} as User
+        router.push('/auth/login')
     }
 
     async function createUser(username: string, password: string, role: Role | string) {

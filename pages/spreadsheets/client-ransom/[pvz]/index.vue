@@ -57,7 +57,6 @@ async function updateDeliveryRow(obj: any) {
   let answer = confirm("Вы точно хотите изменить статус доставки?");
   if (answer) await storeRansom.updateDeliveryStatus(obj.row, obj.flag, "ClientRansom", user.value.username);
   filteredRows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "ClientRansom");
-  rows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "ClientRansom");
 }
 
 async function updateDeliveryRows(obj: any) {
@@ -67,14 +66,12 @@ async function updateDeliveryRows(obj: any) {
   if (answer)
     await storeRansom.updateDeliveryRowsStatus(obj.idArray, obj.flag, "ClientRansom", user.value.username);
   filteredRows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "ClientRansom");
-  rows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "OurRansom");
 }
 
 async function deleteRow(id: number) {
   let answer = confirm("Вы точно хотите удалить данную строку?");
   if (answer) await storeRansom.deleteRansomRow(id, "ClientRansom");
   filteredRows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "ClientRansom");
-  rows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "ClientRansom");
 }
 
 async function deleteSelectedRows(idArray: number[]) {
@@ -83,57 +80,41 @@ async function deleteSelectedRows(idArray: number[]) {
   );
   if (answer) await storeRansom.deleteRansomSelectedRows(idArray, "ClientRansom");
   filteredRows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "ClientRansom");
-  rows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "ClientRansom");
 }
 
 async function updateRow() {
-  isLoading.value = true;
   await storeRansom.updateRansomRow(rowData.value, user.value.username, "ClientRansom");
+  await closeModal();
   filteredRows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "ClientRansom");
-  rows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "ClientRansom");
-  closeModal();
-  isLoading.value = false;
 }
 
 async function createRow() {
-  isLoading.value = true;
   await storeRansom.createRansomRow(rowData.value, user.value.username, "ClientRansom");
+  await closeModal();
   filteredRows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "ClientRansom");
-  rows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "ClientRansom");
-  closeModal();
-  isLoading.value = false;
 }
 
 async function createCopyRow(id: number) {
   await storeRansom.createCopyRow(id, "ClientRansom");
   filteredRows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "ClientRansom");
-  rows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "ClientRansom");
 }
 
-async function deleteIssuedRowsTimer() {
+async function deleteIssuedRows() {
   isLoading.value = true;
   await storeRansom.deleteIssuedRows("ClientRansom");
-  filteredRows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "ClientRansom");
-  rows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "ClientRansom");
+  filteredRows.value = await storeRansom.getRansomRows("ClientRansom");
+  rows.value = await storeRansom.getRansomRows("ClientRansom");
   isLoading.value = false;
 }
 
-function timeUntilNext2359() {
-  const now = new Date();
-  const tomorrow2359 = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 23, 59, 0, 0);
-  return tomorrow2359.getTime() - now.getTime();
+function deleteIssuedRowsTimer() {
+  const currentTime = new Date();
+  const currentHour = currentTime.getHours();
+  const currentMinute = currentTime.getMinutes();
+  if (currentHour === 22 && currentMinute >= 0 || currentHour === 23 && currentMinute <= 59) {
+    deleteIssuedRows();
+  }
 }
-
-function scheduleDeleteIssuedRows() {
-  const timeUntilNext2359Data = timeUntilNext2359();
-
-  setTimeout(async () => {
-    await deleteIssuedRowsTimer();
-    scheduleDeleteIssuedRows();
-  }, timeUntilNext2359Data);
-}
-
-scheduleDeleteIssuedRows();
 
 const filteredRows = ref<Array<IClientRansom>>();
 function handleFilteredRows(filteredRowsData: IClientRansom[]) {
@@ -173,8 +154,7 @@ function handleFilteredRows(filteredRowsData: IClientRansom[]) {
             month: "2-digit",
             year: "2-digit",
           }) === today ||
-            row.issued === null) &&
-          row.deliveredPVZ !== null
+            row.issued === null)
       );
     }
   }
@@ -200,6 +180,7 @@ onMounted(async () => {
     toast.error("У вас нет прав на просмотр этого ПВЗ!");
     router.push("/spreadsheets/our-ransom");
   }
+
 
   isLoading.value = false;
 });

@@ -11,12 +11,15 @@ interface IRequestBody {
 export default defineEventHandler(async (event) => {
     try {
         const { idArray, flag } = await readBody<IRequestBody>(event);
+        const twentyFourHoursAgo = new Date();
+        twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
 
         if (flag === 'OurRansom') {
             const deleteRows = await prisma.ourRansom.updateMany({
                 where: {
                     issued: {
                         not: null,
+                        lt: twentyFourHoursAgo,
                     }
                 },
                 data: {
@@ -28,6 +31,7 @@ export default defineEventHandler(async (event) => {
                 where: {
                     issued: {
                         not: null,
+                        lt: twentyFourHoursAgo,
                     }
                 },
                 data: {
@@ -39,6 +43,7 @@ export default defineEventHandler(async (event) => {
                 where: {
                     paid: {
                         not: null,
+                        lt: twentyFourHoursAgo,
                     }
                 },
                 data: {

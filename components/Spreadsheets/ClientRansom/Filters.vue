@@ -130,6 +130,31 @@ watch(
   filterRows
 );
 
+let variables = ref([
+  selectedCell,
+  selectedFromName,
+  selectedProductName,
+  selectedDispatchPVZ,
+  selectedOrderPVZ,
+  selectedOrderAccount,
+  selectedAdditionally,
+  selectedPriceSite,
+  startingDate,
+  endDate,
+  startingDate2,
+  endDate2,
+  startingDate3,
+  endDate3,
+  startingDate4,
+  endDate4,
+]);
+
+const nonEmptyCount: Ref<number> = computed(() => {
+  return variables.value.filter((variable: any) => {
+    return variable.value !== undefined && variable.value !== null && variable.value !== '';
+  }).length;
+});
+
 function saveToLocalStorage(key: string, value: any) {
   localStorage.setItem(key, JSON.stringify(value));
 }
@@ -271,6 +296,7 @@ let dateFilter = ref('issued')
       <h1 class="text-xl font-bold">Фильтры</h1>
       <Icon @click="showFilters = !showFilters" class="cursor-pointer duration-200 hover:text-secondary-color"
         name="solar:filters-line-duotone" size="24" />
+      <h1 class="bg-secondary-color px-3 py-1 font-bold text-white rounded-full"> {{ nonEmptyCount }} </h1>
     </div>
     <div v-if="showFilters" class="border-2 border-gray-300 p-3 mt-3 border-dashed">
       <div class="grid grid-cols-2 max-xl:grid-cols-2 max-md:grid-cols-1">

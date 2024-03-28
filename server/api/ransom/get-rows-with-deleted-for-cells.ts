@@ -16,6 +16,8 @@ export default defineEventHandler(async (event) => {
                     cell: true,
                     dispatchPVZ: true,
                     issued: true,
+                    fromName: true,
+                    deleted: true,
                 },
                 orderBy: {
                     created_at: 'desc',

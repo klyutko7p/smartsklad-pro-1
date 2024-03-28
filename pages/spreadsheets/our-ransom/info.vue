@@ -3,6 +3,7 @@ import Cookies from "js-cookie";
 const storeUsers = useUsersStore();
 const storeRansom = useRansomStore();
 const router = useRouter();
+const storeCells = useCellsStore()
 
 let user = ref({} as User);
 let rowsOurRansom = ref<Array<IOurRansom>>();
@@ -12,13 +13,17 @@ let isLoading = ref(false);
 onBeforeMount(async () => {
   isLoading.value = true;
   user.value = await storeUsers.getUser();
-  rowsOurRansom.value = await storeRansom.getRansomRows("OurRansom");
+  rowsOurRansom.value = await storeRansom.getRansomRowsWithPVZ("OurRansom");
 
   if (user.value.role === 'SORTIROVKA') {
     router.push('/spreadsheets/our-ransom')
   }
 
   isLoading.value = false;
+  
+  let rowsWithDeleted = await storeRansom.getRansomRowsWithDeletedForCells("OurRansom")
+  await storeCells.updateCellsStatus(rowsWithDeleted)
+
 });
 
 onMounted(() => {
@@ -29,7 +34,7 @@ onMounted(() => {
 
 function getCountOfItemsByPVZOurRansom(PVZ: string) {
   if (user.value.role !== "PVZ") {
-    return rowsOurRansom.value?.filter((row) => row.dispatchPVZ === PVZ).length;
+    return rowsOurRansom.value?.filter((row) => row.dispatchPVZ === PVZ && row.deliveredPVZ === null && row.deleted === null).length;
   } else if (user.value.role === "PVZ") {
     let today = new Date().toLocaleDateString("ru-RU", {
       day: "2-digit",
@@ -45,20 +50,20 @@ function getCountOfItemsByPVZOurRansom(PVZ: string) {
           month: "2-digit",
           year: "2-digit",
         }) === today ||
-          row.issued === null) &&
-        row.deliveredPVZ !== null
+          row.issued === null) 
     ).length;
   }
 }
 
 function getCountOfItemsByPVZOurRansomIssued(PVZ: string) {
-  return rowsOurRansom.value?.filter((row) => row.dispatchPVZ === PVZ && row.deliveredSC !== null && row.issued === null).length;
+  return rowsOurRansom.value?.filter((row) => row.dispatchPVZ === PVZ && row.deliveredSC !== null && row.deliveredPVZ !== null && row.issued === null && row.deleted === null).length;
 }
 
 definePageMeta({
   layout: false,
   name: "Выбор ПВЗ (Наш Выкуп)"
 });
+
 
 </script>
 
@@ -79,10 +84,6 @@ definePageMeta({
             <div @click="router.push(`/spreadsheets/our-ransom/${pvz}`)" v-for="pvz in user.PVZ"
               class="border-2 border-secondary-color p-10 font-medium hover:bg-secondary-color hover:text-white duration-300 rounded-2xl cursor-pointer">
               <h1 class="text-xl font-bold">{{ pvz }}</h1>
-              <h1 v-if="user.role !== 'PVZ' && (user.role === 'ADMIN' || user.role === 'ADMINISTRATOR')">
-                Заказано:
-                <span class="font-bold">{{ getCountOfItemsByPVZOurRansom(pvz) }}</span>
-              </h1>
               <h1 v-if="user.role !== 'PVZ' && (user.role === 'ADMIN' || user.role === 'ADMINISTRATOR')">
                 Товаров на выдачу:
                 <span class="font-bold">{{ getCountOfItemsByPVZOurRansomIssued(pvz) }}</span>
@@ -109,10 +110,6 @@ definePageMeta({
             <div @click="router.push(`/spreadsheets/our-ransom/${pvz}`)" v-for="pvz in user.PVZ"
               class="border-2 border-secondary-color p-10 font-medium hover:bg-secondary-color hover:text-white duration-300 rounded-2xl cursor-pointer">
               <h1 class="text-xl font-bold">{{ pvz }}</h1>
-              <h1 v-if="user.role !== 'PVZ' && (user.role === 'ADMIN' || user.role === 'ADMINISTRATOR')">
-                Заказано:
-                <span class="font-bold">{{ getCountOfItemsByPVZOurRansom(pvz) }}</span>
-              </h1>
               <h1 v-if="user.role !== 'PVZ' && (user.role === 'ADMIN' || user.role === 'ADMINISTRATOR')">
                 Товаров на выдачу:
                 <span class="font-bold">{{ getCountOfItemsByPVZOurRansomIssued(pvz) }}</span>

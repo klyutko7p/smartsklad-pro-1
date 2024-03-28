@@ -41,7 +41,6 @@ function openModal(row: IOurRansom) {
     rowData.value.issued = rowData.value.issued
       ? storeUsers.getISODateTime(rowData.value.issued)
       : null;
-    console.log(rowData.value.deliveredSC);
   } else {
     rowData.value = {} as IOurRansom;
     rowData.value.fromName = "";
@@ -57,7 +56,6 @@ async function updateDeliveryRow(obj: any) {
   let answer = confirm("Вы точно хотите изменить статус доставки?");
   if (answer) await storeRansom.updateDeliveryStatus(obj.row, obj.flag, "OurRansom", user.value.username);
   filteredRows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "OurRansom");
-  rows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "OurRansom");
 }
 
 async function updateDeliveryRows(obj: any) {
@@ -67,14 +65,12 @@ async function updateDeliveryRows(obj: any) {
   if (answer)
     await storeRansom.updateDeliveryRowsStatus(obj.idArray, obj.flag, "OurRansom", user.value.username);
   filteredRows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "OurRansom");
-  rows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "OurRansom");
 }
 
 async function deleteRow(id: number) {
   let answer = confirm("Вы точно хотите удалить данную строку?");
   if (answer) await storeRansom.deleteRansomRow(id, "OurRansom");
   filteredRows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "OurRansom");
-  rows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "OurRansom");
 }
 
 async function deleteSelectedRows(idArray: number[]) {
@@ -83,35 +79,31 @@ async function deleteSelectedRows(idArray: number[]) {
   );
   if (answer) await storeRansom.deleteRansomSelectedRows(idArray, "OurRansom");
   filteredRows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "OurRansom");
-  rows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "OurRansom");
 }
 
 async function updateRow() {
+  isLoading.value = true;
+  
   await storeRansom.updateRansomRow(rowData.value, user.value.username, "OurRansom");
   filteredRows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "OurRansom");
-  rows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "OurRansom");
   closeModal();
+
+  isLoading.value = false;
 }
 
 async function createRow() {
+  isLoading.value = true;
+  
   await storeRansom.createRansomRow(rowData.value, user.value.username, "OurRansom");
   filteredRows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "OurRansom");
-  rows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "OurRansom");
   closeModal();
+
+  isLoading.value = false;
 }
 
 async function createCopyRow(id: number) {
   await storeRansom.createCopyRow(id, "OurRansom");
   filteredRows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "OurRansom");
-  rows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "OurRansom");
-}
-
-async function deleteIssuedRowsTimer() {
-  isLoading.value = true;
-  await storeRansom.deleteIssuedRows("OurRansom");
-  filteredRows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "OurRansom");
-  rows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "OurRansom");
-  isLoading.value = false;
 }
 
 const filteredRows = ref<Array<IOurRansom>>();
@@ -152,41 +144,18 @@ function handleFilteredRows(filteredRowsData: IOurRansom[]) {
             month: "2-digit",
             year: "2-digit",
           }) === today ||
-            row.issued === null) &&
-          row.deliveredPVZ !== null
+            row.issued === null)
       );
     }
   }
 }
-
-function timeUntilNext2359() {
-  const now = new Date();
-  const tomorrow2359 = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 23, 59, 0, 0);
-  return tomorrow2359.getTime() - now.getTime();
-}
-
-function scheduleDeleteIssuedRows() {
-  const timeUntilNext2359Data = timeUntilNext2359();
-
-  setTimeout(async () => {
-    await deleteIssuedRowsTimer();
-    scheduleDeleteIssuedRows();
-  }, timeUntilNext2359Data);
-}
-
-scheduleDeleteIssuedRows();
 
 let originallyRows = ref<Array<IOurRansom>>()
 
 onMounted(async () => {
   isLoading.value = true;
   user.value = await storeUsers.getUser();
-  // rows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "OurRansom");
-  originallyRows.value = await storeRansom.getRansomRows("OurRansom");
-  rows.value = originallyRows.value?.filter((row) => row.dispatchPVZ === pvzString)
-  pvz.value = await storePVZ.getPVZ();
-  sortingCenters.value = await storeSortingCenters.getSortingCenters();
-  orderAccounts.value = await storeOrderAccounts.getOrderAccounts();
+  rows.value = await storeRansom.getRansomRowsByPVZ(pvzString, "OurRansom")
 
   if (rows.value) {
     handleFilteredRows(rows.value);
@@ -195,9 +164,14 @@ onMounted(async () => {
   if (!user.value.PVZ.includes(pvzString)) {
     toast.error("У вас нет прав на просмотр этого ПВЗ!");
     router.push("/spreadsheets/our-ransom");
-  }
+  } 
 
   isLoading.value = false;
+
+  originallyRows.value = await storeRansom.getRansomRowsForModal("OurRansom");
+  pvz.value = await storePVZ.getPVZ();
+  sortingCenters.value = await storeSortingCenters.getSortingCenters();
+  orderAccounts.value = await storeOrderAccounts.getOrderAccounts();
 });
 
 onBeforeMount(() => {
@@ -218,8 +192,11 @@ let isAutoCell = ref(true);
 let isAutoFromName = ref(true);
 let isAutoPVZ = ref(true);
 
-function getCellFromName() {
+async function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
+async function getCellFromName() {
   if (rowData.value.fromName.trim().length === 4) {
     let phoneNum = rowData.value.fromName.trim().toString().slice(-4);
     let row = originallyRows.value?.filter((row) => row.fromName ? row.fromName.slice(-4) === phoneNum : '');
@@ -245,20 +222,20 @@ function getCellFromName() {
   }
 
   if (rowData.value.fromName.trim().length === 12 && isAutoFromName.value === true) {
-    let row = originallyRows.value?.filter((row) => row.fromName === rowData.value.fromName && row.dispatchPVZ === rowData.value.dispatchPVZ);
-    if (row) {
+    let row = originallyRows.value?.filter((row) => row.fromName === rowData.value.fromName && row.dispatchPVZ === rowData.value.dispatchPVZ && (row.deliveredPVZ === null || row.deliveredSC === null));
+    if (row && row.length > 0) {
       rowData.value.cell = row[0].cell;
     }
   }
 }
 
-function changePVZ() {
+async function changePVZ() {
   if (rowData.value.fromName.trim().length === 12 && isAutoFromName.value === true) {
-    let row = originallyRows.value?.filter((row) => row.fromName === rowData.value.fromName && row.dispatchPVZ === rowData.value.dispatchPVZ);
+    let row = originallyRows.value?.filter((row) => row.fromName === rowData.value.fromName && row.dispatchPVZ === rowData.value.dispatchPVZ && (row.deliveredPVZ === null || row.deliveredSC === null));
     if (row && row.length > 0) {
       rowData.value.cell = row[0].cell;
     } else {
-      const unoccupiedCellsAndPVZ = getUnoccupiedCellsAndPVZ();
+      const unoccupiedCellsAndPVZ = await getUnoccupiedCellsAndPVZ();
       const freeCell = unoccupiedCellsAndPVZ.find(cell => cell.dispatchPVZ === rowData.value.dispatchPVZ);
       if (freeCell) {
         rowData.value.cell = freeCell.cell;
@@ -269,8 +246,7 @@ function changePVZ() {
   }
 }
 
-
-function getUnoccupiedCellsAndPVZ() {
+async function getUnoccupiedCellsAndPVZ() {
   const unoccupiedCells = new Map();
 
   originallyRows.value?.forEach(row => {
@@ -284,7 +260,7 @@ function getUnoccupiedCellsAndPVZ() {
     }
   });
 
-  const result = [];
+  const result: any[] = [];
   unoccupiedCells.forEach((value, key) => {
     if (!value.hasEmptyIssued) {
       result.push({ cell: key, dispatchPVZ: value.dispatchPVZ });
@@ -294,7 +270,8 @@ function getUnoccupiedCellsAndPVZ() {
   return result;
 }
 
-function getFromNameFromCell() {
+async function getFromNameFromCell() {
+  await sleep(3000)
   if (rowData.value.cell.trim() && isAutoCell.value === true) {
     let rowFromName = originallyRows.value?.filter((row) => row.cell === rowData.value.cell);
     if (rowFromName) {
@@ -313,13 +290,6 @@ function getFromNameFromCell() {
     <div v-if="user.role === 'ADMIN'">
       <NuxtLayout name="admin">
         <div v-if="!isLoading" class="mt-3">
-          <div>
-            <SpreadsheetsOurRansomFilters v-if="rows" @filtered-rows="handleFilteredRows" :rows="rows" :user="user" />
-            <div class="mt-5 flex items-center gap-3" v-if="user.dataOurRansom === 'WRITE'">
-              <UIMainButton v-if="user.role === 'ADMIN' || user.role === 'ADMINISTRATOR'" @click="openModal">
-                Создать новую запись</UIMainButton>
-            </div>
-          </div>
 
           <SpreadsheetsOurRansomTable @update-delivery-row="updateDeliveryRow" :rows="filteredRows" :user="user"
             @delete-row="deleteRow" @open-modal="openModal" @delete-selected-rows="deleteSelectedRows"
@@ -505,14 +475,6 @@ function getFromNameFromCell() {
     <div v-else>
       <NuxtLayout name="user">
         <div v-if="!isLoading" class="mt-3">
-          <div>
-            <SpreadsheetsOurRansomFilters v-if="rows && user.role !== 'PVZ'" @filtered-rows="handleFilteredRows"
-              :rows="rows" :user="user" />
-            <div class="mt-5 flex items-center gap-3" v-if="user.dataOurRansom === 'WRITE'">
-              <UIMainButton v-if="user.role === 'ADMIN' || user.role === 'ADMINISTRATOR'" @click="openModal">
-                Создать новую запись</UIMainButton>
-            </div>
-          </div>
 
           <SpreadsheetsOurRansomTable @update-delivery-row="updateDeliveryRow" :rows="filteredRows" :user="user"
             @delete-row="deleteRow" @open-modal="openModal" @delete-selected-rows="deleteSelectedRows"

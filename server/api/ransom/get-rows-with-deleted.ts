@@ -6,12 +6,31 @@ interface IRequestBody {
     flag: string
 }
 
+const currentDate = new Date();
+const currentDayOfWeek = currentDate.getDay();
+
+const startOfWeek = new Date(currentDate);
+startOfWeek.setDate(currentDate.getDate() - currentDayOfWeek);
+
+const endOfWeek = new Date(currentDate);
+endOfWeek.setDate(startOfWeek.getDate() + 7);
+
 export default defineEventHandler(async (event) => {
     try {
         let { flag } = await readBody<IRequestBody>(event);
 
         if (flag === 'OurRansom') {
             const rows = await prisma.ourRansom.findMany({
+                where: {
+                    deleted: {
+                        gte: startOfWeek,
+                        lt: endOfWeek,
+                    },
+                    issued: {
+                        gte: startOfWeek,
+                        lt: endOfWeek,
+                    },
+                },
                 orderBy: {
                     created_at: 'desc',
                 },

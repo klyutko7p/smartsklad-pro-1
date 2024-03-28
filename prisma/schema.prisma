@@ -203,6 +203,14 @@ model SumOfRejection {
   value Float
 }
 
+model Cell {
+  id       Int     @id @default(autoincrement())
+  name     String?
+  status   String?
+  fromName String?
+  PVZ      String?
+}
+
 enum Role {
   USER
   ADMIN

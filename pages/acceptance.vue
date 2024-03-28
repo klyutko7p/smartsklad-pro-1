@@ -69,11 +69,11 @@ function scanItem() {
     timeoutId = setTimeout(async () => {
         let scannedLink = scanStringItem.value.trim();
         scannedLink = convertToURL(scannedLink);
+        scanStringItem.value = "";
         let rowData = await storeRansom.getRansomRowsById(+scannedLink, "OurRansom");
         await acceptItem(rowData);
         arrayOfRows.value.push(rowData);
-        scanStringItem.value = "";
-    }, 2000);
+    }, 1500);
 }
 
 function convertToURL(inputString: string) {
@@ -118,6 +118,7 @@ let selectedPVZ = ref('')
 </script>
 
 <template>
+
     <Head>
         <Title>Приёмка</Title>
     </Head>
@@ -127,21 +128,25 @@ let selectedPVZ = ref('')
             <NuxtLayout name="admin">
                 <div class="mt-10">
                     <div>
-                        <h1 class="mb-3 font-bold text-xl">Выберите нужное ПВЗ, чтобы начать приёмку!</h1> 
-                        <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="selectedPVZ" name="pvz">
+                        <h1 class="mb-3 font-bold text-xl">Выберите нужное ПВЗ, чтобы начать приёмку!</h1>
+                        <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="selectedPVZ"
+                            name="pvz">
                             <option disabled value=''>Выберите ПВЗ</option>
                             <option v-for="pvz in user.PVZ"> {{ pvz }} </option>
-                          </select>
+                        </select>
                     </div>
                     <div class="flex items-center flex-col justify-center gap-5 mt-10" v-if="selectedPVZ">
-                        <UIMainButton @click="focusInput">СКАНИРОВАТЬ</UIMainButton>
-                        <h1 v-if="isScanActive">Сканирование товаров включено</h1>
-                        <input ref="myInput" autofocus class="opacity-0" v-model="scanStringItem" @input="scanItem" />
+                        <div class="flex items-center gap-5">
+                            <UIMainButton @click="focusInput">СКАНИРОВАТЬ</UIMainButton>
+                            <Icon v-if="isScanActive" name="eos-icons:bubble-loading" class="text-secondary-color" />
+                        </div>
+                        <input ref="myInput" class="opacity-0" autofocus v-model="scanStringItem" @input="scanItem" />
                         <div class="w-full gap-10 flex flex-col">
                             <div v-for="row in arrayOfRows" class="border-2 border-dashed p-5">
                                 <div v-if="'clientLink1' in row">
                                     <div class="mt-5 flex items-center justify-between">
                                         <div>
+                                            <h1> ID: {{ row.id }} </h1>
                                             <h1>{{ formatPhoneNumber(row.fromName) }}</h1>
                                             <h1 class="text-4xl font-bold">{{ row.cell }}</h1>
                                         </div>
@@ -155,14 +160,9 @@ let selectedPVZ = ref('')
                                     </div>
                                 </div>
                                 <div v-if="'clientLink2' in row">
-                                    <h1>
-                                        Заказ –
-                                        <span @click="router.push(`/spreadsheets/order/${row.clientLink2}`)"
-                                            class="text-secondary-color cursor-pointer duration-200 hover:opacity-50 border-b-2 border-secondary-color font-medium">{{
-                                                row.clientLink2 }}</span>
-                                    </h1>
                                     <div class="mt-5 flex items-center justify-between">
                                         <div>
+                                            <h1>ID: {{ row.id }} </h1>
                                             <h1>{{ formatPhoneNumber(row.fromName) }}</h1>
                                             <h1 class="text-4xl font-bold">{{ row.cell }}</h1>
                                         </div>
@@ -186,27 +186,25 @@ let selectedPVZ = ref('')
             <NuxtLayout name="user">
                 <div class="mt-10">
                     <div>
-                        <h1 class="mb-3 font-bold text-xl">Выберите нужное ПВЗ, чтобы начать приёмку!</h1> 
-                        <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="selectedPVZ" name="pvz">
+                        <h1 class="mb-3 font-bold text-xl">Выберите нужное ПВЗ, чтобы начать приёмку!</h1>
+                        <select class="py-1 px-2 border-2 bg-transparent rounded-lg text-base" v-model="selectedPVZ"
+                            name="pvz">
                             <option disabled value=''>Выберите ПВЗ</option>
                             <option v-for="pvz in user.PVZ"> {{ pvz }} </option>
-                          </select>
+                        </select>
                     </div>
                     <div class="flex items-center flex-col justify-center gap-5 mt-10" v-if="selectedPVZ">
-                        <UIMainButton @click="focusInput">СКАНИРОВАТЬ</UIMainButton>
-                        <h1 v-if="isScanActive">Сканирование товаров включено</h1>
-                        <input ref="myInput" autofocus class="opacity-0" v-model="scanStringItem" @input="scanItem" />
-                        <div class="w-full gap-10 flex flex-col">
+                        <div class="flex items-center gap-5">
+                            <UIMainButton @click="focusInput">СКАНИРОВАТЬ</UIMainButton>
+                            <Icon v-if="isScanActive" name="eos-icons:bubble-loading" class="text-secondary-color" />
+                        </div>
+                        <input ref="myInput" class="opacity-0" autofocus v-model="scanStringItem" @input="scanItem" />
+                        <div class="w-full gap-10 flex flex-col-reverse">
                             <div v-for="row in arrayOfRows" class="border-2 border-dashed p-5">
-                                <div v-if="'clientLink1' in row">
-                                    <h1>
-                                        Заказ –
-                                        <span @click="router.push(`/spreadsheets/order/${row.clientLink1}`)"
-                                            class="text-secondary-color cursor-pointer duration-200 hover:opacity-50 border-b-2 border-secondary-color font-medium">{{
-                                                row.clientLink1 }}</span>
-                                    </h1>
-                                    <div class="mt-5 flex items-center justify-between">
+                                <div v-if="'clientLink1' in row" class="flex flex-col-reverse">
+                                    <div class="flex items-end justify-between">
                                         <div>
+                                            <h1> ID: {{ row.id }} </h1>
                                             <h1>{{ formatPhoneNumber(row.fromName) }}</h1>
                                             <h1 class="text-4xl font-bold">{{ row.cell }}</h1>
                                         </div>
@@ -220,14 +218,9 @@ let selectedPVZ = ref('')
                                     </div>
                                 </div>
                                 <div v-if="'clientLink2' in row">
-                                    <h1>
-                                        Заказ –
-                                        <span @click="router.push(`/spreadsheets/order/${row.clientLink2}`)"
-                                            class="text-secondary-color cursor-pointer duration-200 hover:opacity-50 border-b-2 border-secondary-color font-medium">{{
-                                                row.clientLink2 }}</span>
-                                    </h1>
-                                    <div class="mt-5 flex items-center justify-between">
+                                    <div class="flex items-center justify-between">
                                         <div>
+                                            <h1>ID: {{ row.id }} </h1>
                                             <h1>{{ formatPhoneNumber(row.fromName) }}</h1>
                                             <h1 class="text-4xl font-bold">{{ row.cell }}</h1>
                                         </div>

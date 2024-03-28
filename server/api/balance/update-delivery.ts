@@ -36,14 +36,13 @@ export default defineEventHandler(async (event) => {
                     receivedUser: username,
                 },
             });
-        } else if (updateField === 'received') {
+        } else {
             const updateRow = await prisma.balance.update({
                 where: {
                     id: row.id,
                 },
                 data: {
                     [updateField]: new Date(),
-                    receivedUser2: username,
                 },
             });
         }

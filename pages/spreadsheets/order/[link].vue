@@ -14,27 +14,27 @@ let copyRows = ref<Array<IOurRansom | IClientRansom | IDelivery>>();
 
 function getAmountToBePaid(flag: string) {
   let amountToPaid = 0;
-  if (link.startsWith('1')) {
+  if (link.startsWith("1")) {
     if (rows.value && flag === "NONE") {
       amountToPaid = rows.value
         .filter((value) => !value.issued)
-        .reduce((acc, value) => acc + Math.ceil(value.amountFromClient1 / 10) * 10, 0);
+        .reduce((acc, value) => acc + value.amountFromClient1, 0);
     } else if (rows.value && flag === "PVZ") {
       amountToPaid = rows.value
         .filter((value) => value.deliveredPVZ && !value.issued)
-        .reduce((acc, value) => acc + Math.ceil(value.amountFromClient1 / 10) * 10, 0);
+        .reduce((acc, value) => acc + value.amountFromClient1, 0);
     }
-  } else if (link.startsWith('2')) {
+  } else if (link.startsWith("2")) {
     if (rows.value && flag === "NONE") {
       amountToPaid = rows.value
         .filter((value) => !value.issued)
-        .reduce((acc, value) => acc + Math.ceil(value.amountFromClient2 / 10) * 10, 0);
+        .reduce((acc, value) => acc + value.amountFromClient2, 0);
     } else if (rows.value && flag === "PVZ") {
       amountToPaid = rows.value
         .filter((value) => value.deliveredPVZ && !value.issued)
-        .reduce((acc, value) => acc + Math.ceil(value.amountFromClient2 / 10) * 10, 0);
+        .reduce((acc, value) => acc + value.amountFromClient2, 0);
     }
-  } else if (link.startsWith('3')) {
+  } else if (link.startsWith("3")) {
     if (rows.value && flag === "NONE") {
       amountToPaid = rows.value
         .filter((value) => !value.paid)
@@ -55,33 +55,31 @@ function enableReceivedItems() {
   copyRows.value = rows.value;
 }
 
-let phoneNumber = ref('')
+let phoneNumber = ref("");
 
 onMounted(async () => {
   isLoading.value = true;
   user.value = await storeUsers.getUser();
 
-  if (link.startsWith('1')) {
+  if (link.startsWith("1")) {
     rows.value = await storeRansom.getRansomRowsByLink(link, "OurRansom");
-  } else if (link.startsWith('2')) {
+  } else if (link.startsWith("2")) {
     rows.value = await storeRansom.getRansomRowsByLink(link, "ClientRansom");
-  } else if (link.startsWith('3')) {
+  } else if (link.startsWith("3")) {
     rows.value = await storeRansom.getRansomRowsByLink(link, "Delivery");
-  } 
+  }
 
   if (rows.value) {
     copyRows.value = [...rows.value];
-    console.log(rows.value);
-    phoneNumber.value = copyRows.value[0].fromName
-  } 
-  disableReceivedItems()
+    phoneNumber.value = copyRows.value[0].fromName;
+  }
+  disableReceivedItems();
   isLoading.value = false;
 });
 
 function getNumber(phoneNumberData: string) {
-  return phoneNumberData.slice(-4)
+  return phoneNumberData.slice(-4);
 }
-
 </script>
 
 <template>
@@ -92,24 +90,38 @@ function getNumber(phoneNumberData: string) {
     <div class="mt-5">
       <div class="max-lg:p-3">
         <h1 class="text-2xl overflow-auto">
-          Информация о заказе: <span class="uppercase">{{ route.params.link }}</span>
+          Информация о заказе:
+          <span class="uppercase">{{ route.params.link }}</span>
         </h1>
-        <h1 class="text-xl">
-          Телефон: {{ getNumber(phoneNumber) }} 
-        </h1>
+        <div class="mb-5 flex items-center gap-3">
+          <h1 class="text-xl">
+            Телефон: <span class="italic"> {{ getNumber(phoneNumber) }} </span>
+          </h1>
+          <Icon name="material-symbols:contact-phone-rounded" size="24" />
+        </div>
         <h1 class="text-xl" v-if="!link.startsWith('3')">
-          Оставшаяся сумма к оплате: {{ Math.ceil(getAmountToBePaid("NONE") / 10) * 10 }} руб.
+          Оставшаяся сумма к оплате:
+          <span class="font-bold"> {{ getAmountToBePaid("NONE") }} руб.</span>
         </h1>
         <h1 class="text-xl" v-if="link.startsWith('3')">
-          Оставшаяся сумма к оплате: {{ getAmountToBePaid("NONE") }} руб.
+          Оставшаяся сумма к оплате: <span class="font-bold">{{ getAmountToBePaid("NONE") }} руб.</span>
         </h1>
         <h1 class="text-xl" v-if="!link.startsWith('3')">
-          Сумма к оплате на выдачу: {{ Math.ceil(getAmountToBePaid("PVZ") / 10) * 10 }} руб.
+          Сумма к оплате на выдачу: <span class="font-bold">{{ getAmountToBePaid("PVZ") }} руб.</span>
         </h1>
-        <UIMainButton v-if="showReceivedItems && !link.startsWith('3')" class="mt-5" @click="disableReceivedItems">Скрыть
-          полученные товары</UIMainButton>
-        <UIMainButton v-if="!showReceivedItems && !link.startsWith('3')" class="mt-5" @click="enableReceivedItems">
-          Показать полученные товары</UIMainButton>
+        <UIMainButton
+          v-if="showReceivedItems && !link.startsWith('3')"
+          class="mt-5"
+          @click="disableReceivedItems"
+          >Скрыть полученные товары</UIMainButton
+        >
+        <UIMainButton
+          v-if="!showReceivedItems && !link.startsWith('3')"
+          class="mt-5"
+          @click="enableReceivedItems"
+        >
+          Показать полученные товары</UIMainButton
+        >
       </div>
       <SpreadsheetsOrderTable :link="link" :rows="copyRows" :user="user" />
     </div>

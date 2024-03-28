@@ -110,6 +110,7 @@ async function createRow() {
   isLoading.value = false;
 }
 
+
 async function createCopyRow(id: number) {
   await storeRansom.createCopyRow(id, "OurRansom");
   filteredRows.value = await storeRansom.getRansomRowsByFromName(fromNameString, cellString, "OurRansom");
@@ -158,7 +159,6 @@ function handleFilteredRows(filteredRowsData: IOurRansom[]) {
     }
   }
 }
-
 let originallyRows = ref<Array<IOurRansom>>()
 
 onMounted(async () => {
@@ -242,7 +242,15 @@ async function getCellFromName() {
     let row = originallyRows.value?.filter((row) => row.fromName === rowData.value.fromName && row.dispatchPVZ === rowData.value.dispatchPVZ && (row.deliveredPVZ === null || row.deliveredSC === null));
     if (row && row.length > 0) {
       rowData.value.cell = row[0].cell;
-    } 
+    } else {
+      const unoccupiedCellsAndPVZ = await getUnoccupiedCellsAndPVZ();
+      const freeCell = unoccupiedCellsAndPVZ.find(cell => cell.dispatchPVZ === rowData.value.dispatchPVZ);
+      if (freeCell) {
+        rowData.value.cell = freeCell.cell;
+      } else {
+        toast.warning("Нет свободных ячеек для выбранного ПВЗ");
+      }
+    }
   }
 }
 
@@ -298,6 +306,19 @@ async function getFromNameFromCell() {
   }
 }
 
+async function showDeletedRows(flag: boolean) {
+  if (flag) {
+    let deletedRows = await storeRansom.getRansomRowsWithDeleted("OurRansom");
+    filteredRows.value = deletedRows;
+    rows.value = filteredRows.value;
+  } else {
+    isLoading.value = true;
+    filteredRows.value = await storeRansom.getRansomRows("OurRansom");
+    rows.value = filteredRows.value;
+    isLoading.value = false;
+  }
+}
+
 </script>
 
 <template>
@@ -310,15 +331,11 @@ async function getFromNameFromCell() {
         <div v-if="!isLoading" class="mt-3">
           <div>
             <SpreadsheetsOurRansomFilters v-if="rows" @filtered-rows="handleFilteredRows" :rows="rows" :user="user" />
-            <div class="mt-5 flex items-center gap-3" v-if="user.dataOurRansom === 'WRITE'">
-              <UIMainButton v-if="user.role === 'ADMIN' || user.role === 'ADMINISTRATOR'" @click="openModal">
-                Создать новую запись</UIMainButton>
-            </div>
           </div>
 
           <SpreadsheetsOurRansomTable1 @update-delivery-row="updateDeliveryRow" :rows="filteredRows" :user="user"
             @delete-row="deleteRow" @open-modal="openModal" @delete-selected-rows="deleteSelectedRows"
-            @update-delivery-rows="updateDeliveryRows" @create-copy-row="createCopyRow" :pvz-link="pvzLink" />
+            @update-delivery-rows="updateDeliveryRows" @create-copy-row="createCopyRow" :pvz-link="pvzLink" @show-deleted-rows="showDeletedRows" />
 
           <UIModal v-show="isOpen" @close-modal="closeModal">
             <template v-slot:header>
@@ -412,13 +429,6 @@ async function getFromNameFromCell() {
                 <input :disabled="user.percentClient1 === 'READ'"
                   class="bg-transparent rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-yellow-600 text-sm sm:leading-6 disabled:text-gray-400"
                   v-model="rowData.percentClient" placeholder="По умолчанию: 10" type="number" />
-              </div>
-
-              <div class="grid grid-cols-2 mb-5" v-if="user.deliveredKGT1 === 'READ' || user.deliveredKGT1 === 'WRITE'">
-                <label for="deliveredKGT1" class="max-sm:text-sm">Дополнительный доход</label>
-                <input :disabled="user.deliveredKGT1 === 'READ'"
-                  class="bg-transparent rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-yellow-600 text-sm sm:leading-6 disabled:text-gray-400"
-                  v-model="rowData.deliveredKGT" placeholder="По умолчанию: 0" type="number" />
               </div>
 
               <div class="grid grid-cols-2 mb-5" v-if="user.orderPVZ1 === 'READ' || user.orderPVZ1 === 'WRITE'">
@@ -510,15 +520,11 @@ async function getFromNameFromCell() {
           <div>
             <SpreadsheetsOurRansomFilters v-if="rows && user.role !== 'PVZ'" @filtered-rows="handleFilteredRows"
               :rows="rows" :user="user" />
-            <div class="mt-5 flex items-center gap-3" v-if="user.dataOurRansom === 'WRITE'">
-              <UIMainButton v-if="user.role === 'ADMIN' || user.role === 'ADMINISTRATOR'" @click="openModal">
-                Создать новую запись</UIMainButton>
-            </div>
           </div>
 
           <SpreadsheetsOurRansomTable1 @update-delivery-row="updateDeliveryRow" :rows="filteredRows" :user="user"
             @delete-row="deleteRow" @open-modal="openModal" @delete-selected-rows="deleteSelectedRows"
-            @update-delivery-rows="updateDeliveryRows" @create-copy-row="createCopyRow" :pvz-link="pvzLink" />
+            @update-delivery-rows="updateDeliveryRows" @create-copy-row="createCopyRow" :pvz-link="pvzLink" @show-deleted-rows="showDeletedRows" />
 
           <UIModal v-show="isOpen" @close-modal="closeModal">
             <template v-slot:header>
@@ -612,13 +618,6 @@ async function getFromNameFromCell() {
                 <input :disabled="user.percentClient1 === 'READ'"
                   class="bg-transparent rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-yellow-600 text-sm sm:leading-6 disabled:text-gray-400"
                   v-model="rowData.percentClient" placeholder="По умолчанию: 10" type="number" />
-              </div>
-
-              <div class="grid grid-cols-2 mb-5" v-if="user.deliveredKGT1 === 'READ' || user.deliveredKGT1 === 'WRITE'">
-                <label for="deliveredKGT1" class="max-sm:text-sm">Дополнительный доход</label>
-                <input :disabled="user.deliveredKGT1 === 'READ'"
-                  class="bg-transparent rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-yellow-600 text-sm sm:leading-6 disabled:text-gray-400"
-                  v-model="rowData.deliveredKGT" placeholder="По умолчанию: 0" type="number" />
               </div>
 
               <div class="grid grid-cols-2 mb-5" v-if="user.orderPVZ1 === 'READ' || user.orderPVZ1 === 'WRITE'">

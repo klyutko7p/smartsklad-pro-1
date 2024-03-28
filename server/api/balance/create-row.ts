@@ -16,9 +16,7 @@ export default defineEventHandler(async (event) => {
         sum: row.sum,
         issued: row.issued,
         received: row.received,
-        notation: row.notation,
         receivedUser: row.receivedUser,
-        receivedUser2: row.receivedUser,
         createdUser: row.createdUser,
       },
     });

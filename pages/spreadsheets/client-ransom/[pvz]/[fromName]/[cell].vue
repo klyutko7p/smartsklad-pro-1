@@ -61,11 +61,6 @@ async function updateDeliveryRow(obj: any) {
     cellString,
     "ClientRansom"
   );
-  rows.value = await storeRansom.getRansomRowsByFromName(
-    fromNameString,
-    cellString,
-    "ClientRansom"
-  );
 }
 
 async function updateDeliveryRows(obj: any) {
@@ -92,11 +87,6 @@ async function deleteRow(id: number) {
     cellString,
     "ClientRansom"
   );
-  rows.value = await storeRansom.getRansomRowsByFromName(
-    fromNameString,
-    cellString,
-    "ClientRansom"
-  );
 }
 
 async function deleteSelectedRows(idArray: number[]) {
@@ -109,45 +99,26 @@ async function deleteSelectedRows(idArray: number[]) {
     cellString,
     "ClientRansom"
   );
-  rows.value = await storeRansom.getRansomRowsByFromName(
-    fromNameString,
-    cellString,
-    "ClientRansom"
-  );
 }
 
 async function updateRow() {
-  isLoading.value = true;
   await storeRansom.updateRansomRow(rowData.value, user.value.username, "ClientRansom");
+  await closeModal();
   filteredRows.value = await storeRansom.getRansomRowsByFromName(
     fromNameString,
     cellString,
     "ClientRansom"
   );
-  rows.value = await storeRansom.getRansomRowsByFromName(
-    fromNameString,
-    cellString,
-    "ClientRansom"
-  );
-  closeModal();
-  isLoading.value = false;
 }
 
 async function createRow() {
-  isLoading.value = true;
   await storeRansom.createRansomRow(rowData.value, user.value.username, "ClientRansom");
+  await closeModal();
   filteredRows.value = await storeRansom.getRansomRowsByFromName(
     fromNameString,
     cellString,
     "ClientRansom"
   );
-  rows.value = await storeRansom.getRansomRowsByFromName(
-    fromNameString,
-    cellString,
-    "ClientRansom"
-  );
-  closeModal();
-  isLoading.value = false;
 }
 
 async function createCopyRow(id: number) {
@@ -157,45 +128,24 @@ async function createCopyRow(id: number) {
     cellString,
     "ClientRansom"
   );
-  rows.value = await storeRansom.getRansomRowsByFromName(
-    fromNameString,
-    cellString,
-    "ClientRansom"
-  );
 }
 
-async function deleteIssuedRowsTimer() {
+async function deleteIssuedRows() {
   isLoading.value = true;
   await storeRansom.deleteIssuedRows("ClientRansom");
-  filteredRows.value = await storeRansom.getRansomRowsByFromName(
-    fromNameString,
-    cellString,
-    "ClientRansom"
-  );
-  rows.value = await storeRansom.getRansomRowsByFromName(
-    fromNameString,
-    cellString,
-    "ClientRansom"
-  );
+  filteredRows.value = await storeRansom.getRansomRows("ClientRansom");
+  rows.value = await storeRansom.getRansomRows("ClientRansom");
   isLoading.value = false;
 }
 
-function timeUntilNext2359() {
-  const now = new Date();
-  const tomorrow2359 = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 23, 59, 0, 0);
-  return tomorrow2359.getTime() - now.getTime();
+function deleteIssuedRowsTimer() {
+  const currentTime = new Date();
+  const currentHour = currentTime.getHours();
+  const currentMinute = currentTime.getMinutes();
+  if (currentHour === 22 && currentMinute >= 0 || currentHour === 23 && currentMinute <= 59) {
+    deleteIssuedRows();
+  }
 }
-
-function scheduleDeleteIssuedRows() {
-  const timeUntilNext2359Data = timeUntilNext2359();
-
-  setTimeout(async () => {
-    await deleteIssuedRowsTimer();
-    scheduleDeleteIssuedRows();
-  }, timeUntilNext2359Data);
-}
-
-scheduleDeleteIssuedRows();
 
 const filteredRows = ref<Array<IClientRansom>>();
 function handleFilteredRows(filteredRowsData: IClientRansom[]) {
@@ -235,8 +185,7 @@ function handleFilteredRows(filteredRowsData: IClientRansom[]) {
             month: "2-digit",
             year: "2-digit",
           }) === today ||
-            row.issued === null) &&
-          row.deliveredPVZ !== null
+            row.issued === null)
       );
     }
   }
@@ -257,7 +206,6 @@ onMounted(async () => {
     rows.value = originallyRows.value?.filter((row) => row.fromName === fromNameString && row.cell === cellString && row.deliveredSC !== null && row.issued === null)
     filteredRows.value = rows.value
   }
-  
   pvz.value = await storePVZ.getPVZ();
   sortingCenters.value = await storeSortingCenters.getSortingCenters();
   marketplaces.value = await storeMarketplaces.getMarketplaces();
@@ -270,6 +218,7 @@ onMounted(async () => {
     toast.error("У вас нет прав на просмотр товаров этого ПВЗ!");
     router.push("/spreadsheets/our-ransom");
   }
+
 
   isLoading.value = false;
 });

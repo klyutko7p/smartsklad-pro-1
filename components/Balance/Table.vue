@@ -17,7 +17,7 @@ function openModal(row: IBalance) {
   emit("openModal", row);
 }
 
-const props = defineProps({
+defineProps({
   user: { type: Object as PropType<User>, required: true },
   rows: { type: Array as PropType<IBalance[]> },
 });
@@ -75,7 +75,7 @@ onMounted(() => {
           <th scope="row" class="border-2">
             {{ row.sum }}
           </th>
-          <td class="border-2">
+          <td class="border-2 whitespace-nowrap">
             <Icon @click="updateDeliveryRow(row, 'issued')" v-if="!row.issued && user.role === 'PVZ'"
               class="text-green-500 cursor-pointer hover:text-green-300 duration-200"
               name="mdi:checkbox-multiple-marked-circle" size="32" />
@@ -83,7 +83,7 @@ onMounted(() => {
               {{ row.issued ? storeUsers.getNormalizedDate(row.issued) : "" }}
             </h1>
           </td>
-          <td class="border-2">
+          <td class="border-2 whitespace-nowrap">
             <Icon @click="updateDeliveryRow(row, 'received')"
               v-if="!row.received && (user.role === 'ADMIN' || user.role === 'ADMINISTRATOR')"
               class="text-green-500 cursor-pointer hover:text-green-300 duration-200"

@@ -30,7 +30,7 @@ onMounted(() => {
 
 function getCountOfItemsByPVZClientRansom(PVZ: string) {
   if (user.value.role !== "PVZ") {
-    return rowsClientRansom.value?.filter((row) => row.dispatchPVZ === PVZ).length;
+    return rowsClientRansom.value?.filter((row) => row.dispatchPVZ === PVZ && row.deliveredPVZ === null).length;
   } else if (user.value.role === "PVZ") {
     let today = new Date().toLocaleDateString("ru-RU", {
       day: "2-digit",
@@ -41,20 +41,18 @@ function getCountOfItemsByPVZClientRansom(PVZ: string) {
       (row) =>
         row.dispatchPVZ === PVZ &&
         row.deliveredSC !== null &&
-        row.deliveredSC !== null &&
         (new Date(row.issued).toLocaleDateString("ru-RU", {
           day: "2-digit",
           month: "2-digit",
           year: "2-digit",
         }) === today ||
-          row.issued === null) &&
-        row.deliveredPVZ !== null
+          row.issued === null) 
     ).length;
   }
 }
 
 function getCountOfItemsByPVZClientRansomIssued(PVZ: string) {
-  return rowsClientRansom.value?.filter((row) => row.dispatchPVZ === PVZ && row.deliveredSC !== null && row.issued === null).length;
+  return rowsClientRansom.value?.filter((row) => row.dispatchPVZ === PVZ && row.deliveredSC !== null && row.deliveredPVZ !== null && row.issued === null).length;
 }
 
 definePageMeta({
@@ -80,10 +78,6 @@ definePageMeta({
             <div @click="router.push(`/spreadsheets/client-ransom/${pvz}`)" v-for="pvz in user.PVZ"
               class="border-2 border-secondary-color p-10 font-medium hover:bg-secondary-color hover:text-white duration-300 rounded-2xl cursor-pointer">
               <h1 class="text-xl font-bold">{{ pvz }}</h1>
-              <h1 v-if="user.role !== 'PVZ' && (user.role === 'ADMIN' || user.role === 'ADMINISTRATOR')">
-                Заказано:
-                <span class="font-bold">{{ getCountOfItemsByPVZClientRansom(pvz) }}</span>
-              </h1>
               <h1 v-if="user.role !== 'PVZ' && (user.role === 'ADMIN' || user.role === 'ADMINISTRATOR')">
                 Товаров на выдачу:
                 <span class="font-bold">{{ getCountOfItemsByPVZClientRansom(pvz) }}</span>
@@ -113,10 +107,6 @@ definePageMeta({
             <div @click="router.push(`/spreadsheets/client-ransom/${pvz}`)" v-for="pvz in user.PVZ"
               class="border-2 border-secondary-color p-10 font-medium hover:bg-secondary-color hover:text-white duration-300 rounded-2xl cursor-pointer">
               <h1 class="text-xl font-bold">{{ pvz }}</h1>
-              <h1 v-if="user.role !== 'PVZ' && (user.role === 'ADMIN' || user.role === 'ADMINISTRATOR')">
-                Заказано:
-                <span class="font-bold">{{ getCountOfItemsByPVZClientRansom(pvz) }}</span>
-              </h1>
               <h1 v-if="user.role !== 'PVZ' && (user.role === 'ADMIN' || user.role === 'ADMINISTRATOR')">
                 Товаров на выдачу:
                 <span class="font-bold">{{ getCountOfItemsByPVZClientRansom(pvz) }}</span>

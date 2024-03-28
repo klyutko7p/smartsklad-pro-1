@@ -17,10 +17,18 @@ async function updateDeliveryRow(obj: any) {
   row.value = await storeRansom.getRansomRow(id, "ClientRansom");
 }
 
+let fullURL = ref('')
+
 onMounted(async () => {
   isLoading.value = true;
   user.value = await storeUsers.getUser();
   row.value = await storeRansom.getRansomRow(id, "ClientRansom");
+
+  if (process.browser) {
+    fullURL.value = window.location.href
+  }
+
+
   isLoading.value = false;
 });
 
@@ -38,6 +46,7 @@ const token = Cookies.get("token");
 </script>
 
 <template>
+
   <Head>
     <Title>Запись - {{ id }}</Title>
   </Head>
@@ -45,9 +54,7 @@ const token = Cookies.get("token");
     <div v-if="user.role === 'ADMIN'">
       <NuxtLayout name="admin">
         <div class="mt-5" v-if="!isLoading">
-          <RecordBody :link="link" :user="user" :row="row"
-            :value="`https://smartsklad-pro-1.netlify.app/spreadsheets/record/2/${row.id}`"
-            @update-delivery-row="updateDeliveryRow" />
+          <RecordBody :link="link" :user="user" :row="row" :value="fullURL" @update-delivery-row="updateDeliveryRow" />
         </div>
         <div v-else>
           <UISpinner />
@@ -57,9 +64,7 @@ const token = Cookies.get("token");
     <div v-else>
       <NuxtLayout name="user">
         <div class="mt-5" v-if="!isLoading">
-          <RecordBody :link="link" :user="user" :row="row"
-            :value="`https://smartsklad-pro-1.netlify.app/spreadsheets/record/2/${row.id}`"
-            @update-delivery-row="updateDeliveryRow" />
+          <RecordBody :link="link" :user="user" :row="row" :value="fullURL" @update-delivery-row="updateDeliveryRow" />
         </div>
         <div v-else>
           <UISpinner />

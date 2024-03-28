@@ -14,7 +14,6 @@ let user = ref({} as User);
 let pvz = ref<Array<PVZ>>();
 let ourRansomRows = ref<Array<IOurRansom>>();
 let clientRansomRows = ref<Array<IClientRansom>>();
-let deliveryRansomRows = ref<Array<IDelivery>>();
 const token = Cookies.get("token");
 let isLoading = ref(false);
 let rows = ref<Array<IBalance>>()
@@ -25,9 +24,8 @@ onBeforeMount(async () => {
   user.value = await storeUsers.getUser();
   pvz.value = await storePVZ.getPVZ();
 
-  ourRansomRows.value = await storeRansom.getRansomRows("OurRansom");
+  ourRansomRows.value = await storeRansom.getRansomRowsForBalance("OurRansom");
   clientRansomRows.value = await storeRansom.getRansomRows("ClientRansom");
-  deliveryRansomRows.value = await storeRansom.getRansomRows("Delivery");
   rows.value = await storeBalance.getBalanceRows();
   sumOfReject.value = await storeRansom.getSumOfRejection()
 
@@ -37,6 +35,8 @@ onBeforeMount(async () => {
     selectedPVZ.value = user.value.visiblePVZ;
     rows.value = rows.value?.filter((row) => row.pvz === user.value.visiblePVZ)
   }
+
+
   isLoading.value = false;
 });
 
@@ -95,7 +95,6 @@ function reduceArray(array: any, flag: string) {
     }
   } else if (selectedTypeOfTransaction.value === "Баланс наличные") {
     if (flag === "OurRansom") {
-      console.log(array);
       array = array.filter((row: any) => row.additionally !== "Отказ брак");
       return array.reduce(
         (ac: any, curValue: any) =>
@@ -132,29 +131,22 @@ function reduceArray(array: any, flag: string) {
       array = array.filter((row: any) => row.additionally !== "Отказ брак");
       return array.reduce((ac: any, curValue: any) => ac + curValue.amountFromClient3, 0);
     }
-  } else if (selectedTypeOfTransaction.value === "Сумма с клиента+предоплата всего") {
-    if (flag === "OurRansom") {
-      array = array.filter((row: any) => row.additionally !== "Отказ брак");
-      return array.reduce(
-        (ac: any, curValue: any) =>
-          ac + (curValue.amountFromClient1 + curValue.prepayment),
-        0
-      );
-    } else if (flag === "ClientRansom") {
-      array = array.filter((row: any) => row.additionally !== "Отказ брак");
-      return array.reduce(
-        (ac: any, curValue: any) =>
-          ac + (curValue.amountFromClient2 + curValue.prepayment),
-        0
-      );
-    } else {
-      array = array.filter((row: any) => row.additionally !== "Отказ брак");
-      return array.reduce((ac: any, curValue: any) => ac + curValue.amountFromClient3, 0);
-    }
-  }
+  } 
 }
 
 function getAllSum() {
+  let newStartingDate = new Date(startingDate.value);
+  newStartingDate.setHours(0);
+  newStartingDate.setMinutes(0);
+  newStartingDate.setSeconds(0);
+  newStartingDate.setMilliseconds(0);
+
+  let newEndDate = new Date(endDate.value)
+  newEndDate.setHours(23);
+  newEndDate.setMinutes(59);
+  newEndDate.setSeconds(59);
+  newEndDate.setMilliseconds(0);
+  
   if (selectedTypeOfTransaction.value === "Доход") {
     if (selectedPVZ.value === "Все ПВЗ") {
       copyArrayOurRansom.value = ourRansomRows.value
@@ -162,20 +154,18 @@ function getAllSum() {
           (row) =>
             row.issued !== null &&
             (!startingDate.value ||
-              new Date(row.issued) >= new Date(startingDate.value)) &&
-            (!endDate.value || new Date(row.issued) <= new Date(endDate.value))
+              new Date(row.issued) >= new Date(newStartingDate)) &&
+            (!endDate.value || new Date(row.issued) <= new Date(newEndDate))
         )
-        .sort((a, b) => new Date(b.issued) - new Date(a.issued));
 
       copyArrayClientRansom.value = clientRansomRows.value
         ?.filter(
           (row) =>
             row.issued !== null &&
             (!startingDate.value ||
-              new Date(row.issued) >= new Date(startingDate.value)) &&
-            (!endDate.value || new Date(row.issued) <= new Date(endDate.value))
+              new Date(row.issued) >= new Date(newStartingDate)) &&
+            (!endDate.value || new Date(row.issued) <= new Date(newEndDate))
         )
-        .sort((a, b) => new Date(b.issued) - new Date(a.issued));
 
       sum1.value = reduceArray(copyArrayOurRansom.value, "OurRansom");
       sum2.value = reduceArray(copyArrayClientRansom.value, "ClientRansom");
@@ -187,10 +177,9 @@ function getAllSum() {
             row.dispatchPVZ === selectedPVZ.value &&
             row.issued !== null &&
             (!startingDate.value ||
-              new Date(row.issued) >= new Date(startingDate.value)) &&
-            (!endDate.value || new Date(row.issued) <= new Date(endDate.value))
+              new Date(row.issued) >= new Date(newStartingDate)) &&
+            (!endDate.value || new Date(row.issued) <= new Date(newEndDate))
         )
-        .sort((a, b) => new Date(b.issued) - new Date(a.issued));
 
       copyArrayClientRansom.value = clientRansomRows.value
         ?.filter(
@@ -198,10 +187,9 @@ function getAllSum() {
             row.dispatchPVZ === selectedPVZ.value &&
             row.issued !== null &&
             (!startingDate.value ||
-              new Date(row.issued) >= new Date(startingDate.value)) &&
-            (!endDate.value || new Date(row.issued) <= new Date(endDate.value))
+              new Date(row.issued) >= new Date(newStartingDate)) &&
+            (!endDate.value || new Date(row.issued) <= new Date(newEndDate))
         )
-        .sort((a, b) => new Date(b.issued) - new Date(a.issued));
 
       sum1.value = reduceArray(copyArrayOurRansom.value, "OurRansom");
       sum2.value = reduceArray(copyArrayClientRansom.value, "ClientRansom");
@@ -215,10 +203,10 @@ function getAllSum() {
             row.issued === null &&
             row.deleted === null &&
             (!startingDate.value ||
-              new Date(row.issued) >= new Date(startingDate.value)) &&
-            (!endDate.value || new Date(row.issued) <= new Date(endDate.value))
-        )
-        .sort((a, b) => new Date(b.issued) - new Date(a.issued));
+              new Date(row.created_at) >= new Date(newStartingDate)) &&
+            (!endDate.value || new Date(row.created_at) <= new Date(newEndDate))
+      )
+        
       sum1.value = reduceArray(copyArrayOurRansom.value, "OurRansom");
       allSum.value = sum1.value;
     } else {
@@ -229,10 +217,10 @@ function getAllSum() {
             row.issued === null &&
             row.deleted === null &&
             (!startingDate.value ||
-              new Date(row.issued) >= new Date(startingDate.value)) &&
-            (!endDate.value || new Date(row.issued) <= new Date(endDate.value))
+              new Date(row.created_at) >= new Date(newStartingDate)) &&
+            (!endDate.value || new Date(row.created_at) <= new Date(newEndDate))
         )
-        .sort((a, b) => new Date(b.issued) - new Date(a.issued));
+
       sum1.value = reduceArray(copyArrayOurRansom.value, "OurRansom");
       allSum.value = sum1.value;
     }
@@ -243,22 +231,20 @@ function getAllSum() {
           (row) =>
             row.issued !== null &&
             (!startingDate.value ||
-              new Date(row.issued) >= new Date(startingDate.value)) &&
-            (!endDate.value || new Date(row.issued) <= new Date(endDate.value)) &&
+              new Date(row.issued) >= new Date(newStartingDate)) &&
+            (!endDate.value || new Date(row.issued) <= new Date(newEndDate)) &&
             (row.additionally === "Оплата наличными" || row.additionally === "Отказ клиент")
         )
-        .sort((a, b) => new Date(b.issued) - new Date(a.issued));
 
       copyArrayClientRansom.value = clientRansomRows.value
         ?.filter(
           (row) =>
             row.issued !== null &&
             (!startingDate.value ||
-              new Date(row.issued) >= new Date(startingDate.value)) &&
-            (!endDate.value || new Date(row.issued) <= new Date(endDate.value)) &&
+              new Date(row.issued) >= new Date(newStartingDate)) &&
+            (!endDate.value || new Date(row.issued) <= new Date(newEndDate)) &&
             (row.additionally === "Оплата наличными" || row.additionally === "Отказ клиент")
         )
-        .sort((a, b) => new Date(b.issued) - new Date(a.issued));
 
       let sumOfPVZ = rows.value?.filter((row) => row.received !== null).reduce((acc, value) => acc + +value.sum, 0)
       sum1.value = reduceArray(copyArrayOurRansom.value, "OurRansom");
@@ -270,24 +256,22 @@ function getAllSum() {
           (row) =>
             row.issued !== null &&
             (!startingDate.value ||
-              new Date(row.issued) >= new Date(startingDate.value)) &&
-            (!endDate.value || new Date(row.issued) <= new Date(endDate.value)) &&
+              new Date(row.issued) >= new Date(newStartingDate)) &&
+            (!endDate.value || new Date(row.issued) <= new Date(newEndDate)) &&
             (row.additionally === "Оплата наличными" || row.additionally === "Отказ клиент") &&
             row.dispatchPVZ === selectedPVZ.value
         )
-        .sort((a, b) => new Date(b.issued) - new Date(a.issued));
 
       copyArrayClientRansom.value = clientRansomRows.value
         ?.filter(
           (row) =>
             row.issued !== null &&
             (!startingDate.value ||
-              new Date(row.issued) >= new Date(startingDate.value)) &&
-            (!endDate.value || new Date(row.issued) <= new Date(endDate.value)) &&
+              new Date(row.issued) >= new Date(newStartingDate)) &&
+            (!endDate.value || new Date(row.issued) <= new Date(newEndDate)) &&
             (row.additionally === "Оплата наличными" || row.additionally === "Отказ клиент") &&
             row.dispatchPVZ === selectedPVZ.value
         )
-        .sort((a, b) => new Date(b.issued) - new Date(a.issued));
 
       let sumOfPVZ = rows.value?.filter((row) => row.received !== null && row.pvz === selectedPVZ.value).reduce((acc, value) => acc + +value.sum, 0)
       sum1.value = reduceArray(copyArrayOurRansom.value, "OurRansom");
@@ -301,22 +285,20 @@ function getAllSum() {
           (row) =>
             row.issued !== null &&
             (!startingDate.value ||
-              new Date(row.issued) >= new Date(startingDate.value)) &&
-            (!endDate.value || new Date(row.issued) <= new Date(endDate.value)) &&
+              new Date(row.issued) >= new Date(newStartingDate)) &&
+            (!endDate.value || new Date(row.issued) <= new Date(newEndDate)) &&
             row.additionally === "Оплачено онлайн"
         )
-        .sort((a, b) => new Date(b.issued) - new Date(a.issued));
 
       copyArrayClientRansom.value = clientRansomRows.value
         ?.filter(
           (row) =>
             row.issued !== null &&
             (!startingDate.value ||
-              new Date(row.issued) >= new Date(startingDate.value)) &&
-            (!endDate.value || new Date(row.issued) <= new Date(endDate.value)) &&
+              new Date(row.issued) >= new Date(newStartingDate)) &&
+            (!endDate.value || new Date(row.issued) <= new Date(newEndDate)) &&
             row.additionally === "Оплачено онлайн"
         )
-        .sort((a, b) => new Date(b.issued) - new Date(a.issued));
 
       sum1.value = reduceArray(copyArrayOurRansom.value, "OurRansom");
       sum2.value = reduceArray(copyArrayClientRansom.value, "ClientRansom");
@@ -327,24 +309,22 @@ function getAllSum() {
           (row) =>
             row.issued !== null &&
             (!startingDate.value ||
-              new Date(row.issued) >= new Date(startingDate.value)) &&
-            (!endDate.value || new Date(row.issued) <= new Date(endDate.value)) &&
+              new Date(row.issued) >= new Date(newStartingDate)) &&
+            (!endDate.value || new Date(row.issued) <= new Date(newEndDate)) &&
             row.additionally === "Оплачено онлайн" &&
             row.dispatchPVZ === selectedPVZ.value
         )
-        .sort((a, b) => new Date(b.issued) - new Date(a.issued));
 
       copyArrayClientRansom.value = clientRansomRows.value
         ?.filter(
           (row) =>
             row.issued !== null &&
             (!startingDate.value ||
-              new Date(row.issued) >= new Date(startingDate.value)) &&
-            (!endDate.value || new Date(row.issued) <= new Date(endDate.value)) &&
+              new Date(row.issued) >= new Date(newStartingDate)) &&
+            (!endDate.value || new Date(row.issued) <= new Date(newEndDate)) &&
             row.additionally === "Оплачено онлайн" &&
             row.dispatchPVZ === selectedPVZ.value
         )
-        .sort((a, b) => new Date(b.issued) - new Date(a.issued));
 
       sum1.value = reduceArray(copyArrayOurRansom.value, "OurRansom");
       sum2.value = reduceArray(copyArrayClientRansom.value, "ClientRansom");
@@ -505,13 +485,13 @@ async function updateRow() {
                     <h1>От Даты:</h1>
                     <input
                       class="bg-transparent rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-yellow-600 sm:text-sm sm:leading-6 disabled:text-gray-400"
-                      type="date" v-model="startingDate" />
+                      type="datetime-local" v-model="startingDate" />
                   </div>
                   <div class="grid grid-cols-2 my-2">
                     <h1>До Даты:</h1>
                     <input
                       class="bg-transparent rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-yellow-600 sm:text-sm sm:leading-6 disabled:text-gray-400"
-                      type="date" v-model="endDate" />
+                      type="datetime-local" v-model="endDate" />
                   </div>
                 </div>
               </div>
@@ -621,13 +601,13 @@ async function updateRow() {
                     <h1>От Даты:</h1>
                     <input
                       class="bg-transparent rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-yellow-600 sm:text-sm sm:leading-6 disabled:text-gray-400"
-                      type="date" v-model="startingDate" />
+                      type="datetime-local" v-model="startingDate" />
                   </div>
                   <div class="grid grid-cols-2 my-2">
                     <h1>До Даты:</h1>
                     <input
                       class="bg-transparent rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-yellow-600 sm:text-sm sm:leading-6 disabled:text-gray-400"
-                      type="date" v-model="endDate" />
+                      type="datetime-local" v-model="endDate" />
                   </div>
                 </div>
               </div>
